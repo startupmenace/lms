@@ -9,6 +9,46 @@ require_once __DIR__ . '/config/database.php';
 
 echo "Seeding database...\n";
 
+
+function dump_tables_to_file($filename, $tables = []) {
+    $conn = db_connect();
+    $dump = "-- Seed dump generated on " . date('Y-m-d H:i:s') . "\n\n";
+
+    if (empty($tables)) {
+        $tables = [];
+        $res = $conn->query("SHOW TABLES");
+        while ($row = $res->fetch_row()) {
+            $tables[] = $row[0];
+        }
+    }
+
+    foreach ($tables as $table) {
+        $createRes = $conn->query("SHOW CREATE TABLE `$table`");
+        $createRow = $createRes->fetch_assoc();
+        $dump .= "-- --------------------------------------------------------\n";
+        $dump .= "-- Table structure for table `$table`\n\n";
+        $dump .= "DROP TABLE IF EXISTS `$table`;\n";
+        $dump .= $createRow['Create Table'] . ";\n\n";
+
+        $dataRes = $conn->query("SELECT * FROM `$table`");
+        while ($row = $dataRes->fetch_assoc()) {
+            $cols = array_map(fn($col) => "`$col`", array_keys($row));
+            $vals = array_map(function ($value) use ($conn) {
+                if ($value === null) {
+                    return "NULL";
+                }
+                return "'" . $conn->real_escape_string($value) . "'";
+            }, array_values($row));
+
+            $dump .= "INSERT INTO `$table` (" . implode(', ', $cols) . ") VALUES (" . implode(', ', $vals) . ");\n";
+        }
+        $dump .= "\n";
+    }
+
+    file_put_contents($filename, $dump);
+    $conn->close();
+}
+
 // Create admin user if not exists (password: password)
 $check = db_get_row("SELECT id FROM users WHERE email = 'admin@jewelhouse.sc.ke'");
 if (!$check) {
@@ -72,3 +112,7 @@ echo "\nDone! You can now log in:\n";
 echo "  Admin:   admin@jewelhouse.sc.ke / password\n";
 echo "  Teacher: teacher@jewelhouse.sc.ke / teacher123\n";
 echo "  Student: student@jewelhouse.sc.ke / student123\n";
+
+$dumpFile = __DIR__ . '/database/teachbetter_lms_seed_dump.sql';
+dump_tables_to_file($dumpFile, ['users', 'classes', 'students']);
+echo "✓ Dump saved to: $dumpFile\n";
