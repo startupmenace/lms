@@ -1,9 +1,11 @@
 <?php
-define('DB_HOST', '127.0.0.1');
-define('DB_USER', 'Fortuner');
-define('DB_PASS', 'teachbetterlms@001');
-define('DB_NAME', 'teachbetter_lms');
+$db = parse_url($_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL'));
 
+define('DB_HOST', $db['host']);
+define('DB_USER', $db['user']);
+define('DB_PASS', $db['pass']);
+define('DB_NAME', ltrim($db['path'], '/'));
+define('DB_PORT', $db['port'] ?? 3306);
 function db_connect() {
     $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     if ($conn->connect_error) {
