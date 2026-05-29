@@ -1,7 +1,7 @@
 <?php
 define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_USER', 'Fortuner');
+define('DB_PASS', 'teachbetterlms@001');
 define('DB_NAME', 'teachbetter_lms');
 
 function db_connect() {
