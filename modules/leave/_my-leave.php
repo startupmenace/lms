@@ -6,6 +6,7 @@ $applications = db_get_all("SELECT la.*, lt.name as leave_type_name, lt.color, u
     LEFT JOIN users u ON la.reviewed_by=u.id
     WHERE la.user_id=?
     ORDER BY la.applied_at DESC", [$user_id]);
+?>
 
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
     <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
