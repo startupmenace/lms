@@ -7,30 +7,6 @@ $applications = db_get_all("SELECT la.*, lt.name as leave_type_name, lt.color, u
     WHERE la.user_id=?
     ORDER BY la.applied_at DESC", [$user_id]);
 
-$balances = db_get_all("SELECT lt.*, COALESCE(la.used,0) as used_days
-    FROM leave_types lt
-    LEFT JOIN (SELECT leave_type_id, COALESCE(SUM(total_days),0) as used FROM leave_applications WHERE user_id=? AND status IN ('approved','pending') AND YEAR(from_date)=YEAR(CURDATE()) GROUP BY leave_type_id) la ON lt.id=la.leave_type_id
-    WHERE lt.is_active=1 ORDER BY lt.name", [$user_id]);
-?>
-
-<div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
-    <?php foreach ($balances as $b):
-        $pct = $b['max_days_per_year'] > 0 ? round(($b['used_days'] / $b['max_days_per_year']) * 100) : 0;
-    ?>
-    <div class="bg-white rounded-xl border border-gray-200 p-4">
-        <div class="flex items-center gap-2 mb-2">
-            <span class="w-3 h-3 rounded-full" style="background:<?= $b['color'] ?>"></span>
-            <span class="font-semibold text-gray-900 text-sm"><?= sanitize($b['name']) ?></span>
-        </div>
-        <div class="text-2xl font-bold text-gray-900"><?= $b['max_days_per_year'] - $b['used_days'] ?></div>
-        <div class="text-xs text-gray-500">of <?= $b['max_days_per_year'] ?> days remaining</div>
-        <div class="mt-2 w-full bg-gray-100 rounded-full h-1.5">
-            <div class="h-1.5 rounded-full transition-all" style="width:<?= min(100,$pct) ?>%;background:<?= $b['color'] ?>"></div>
-        </div>
-    </div>
-    <?php endforeach; ?>
-</div>
-
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
     <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
         <h3 class="font-bold text-gray-900 text-sm">My Leave History</h3>
