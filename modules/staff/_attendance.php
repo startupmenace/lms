@@ -1,5 +1,5 @@
 <?php
-$teachers = db_get_all("SELECT id, full_name, employee_id, role FROM users WHERE role IN ('admin','teacher') AND is_active=1 ORDER BY full_name");
+$teachers = db_get_all("SELECT u.id, u.full_name, sd.employee_id, u.role FROM users u LEFT JOIN staff_details sd ON u.id=sd.user_id WHERE u.role IN ('admin','teacher') AND u.is_active=1 ORDER BY u.full_name");
 
 $date = $_GET['date'] ?? date('Y-m-d');
 $attendance_tab = $_GET['att_tab'] ?? 'mark';
@@ -129,9 +129,10 @@ $month = $_GET['month'] ?? date('Y-m');
         $params = [$m, $y];
         if ($staff_filter) { $where .= " AND sa.user_id=?"; $params[] = $staff_filter; }
 
-        $report_data = db_get_all("SELECT sa.*, u.full_name, u.employee_id
+        $report_data = db_get_all("SELECT sa.*, u.full_name, sd.employee_id
             FROM staff_attendance sa
             JOIN users u ON sa.user_id=u.id
+            LEFT JOIN staff_details sd ON u.id=sd.user_id
             $where
             ORDER BY u.full_name, sa.date", $params);
         $grouped = [];
