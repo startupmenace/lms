@@ -1,9 +1,5 @@
 <?php
-/**
- * Seed script: Run once to populate the database with sample data
- * Run via browser: http://localhost/jewel-house-school/seed.php
- * Or via CLI: php seed.php
- */
+
 
 require_once __DIR__ . '/config/database.php';
 

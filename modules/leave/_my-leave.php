@@ -10,7 +10,7 @@ $applications = db_get_all("SELECT la.*, lt.name as leave_type_name, lt.color, u
 $balances = db_get_all("SELECT lt.*, COALESCE(la.used,0) as used_days
     FROM leave_types lt
     LEFT JOIN (SELECT leave_type_id, COALESCE(SUM(total_days),0) as used FROM leave_applications WHERE user_id=? AND status IN ('approved','pending') AND YEAR(from_date)=YEAR(CURDATE()) GROUP BY leave_type_id) la ON lt.id=la.leave_type_id
-    WHERE lt.is_active=1 ORDER BY lt.name");
+    WHERE lt.is_active=1 ORDER BY lt.name", [$user_id]);
 ?>
 
 <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
