@@ -100,11 +100,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $existing = db_get_row("SELECT id FROM roles WHERE name=?", [$name]);
         if ($existing) {
             set_flash('error', 'Role already exists.');
-        } else {
-            db_insert("INSERT INTO roles (name, description) VALUES (?,?)", [$name, $desc]);
-            set_flash('success', "Role '$name' created.");
+            redirect('?tab=roles');
         }
-        redirect('?tab=roles');
+        $new_id = db_insert("INSERT INTO roles (name, description) VALUES (?,?)", [$name, $desc]);
+        set_flash('success', "Role '$name' created. Now assign permissions.");
+        redirect("?tab=roles&edit_role=$new_id");
     }
 
     if ($action === 'save_permissions') {
@@ -120,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             unset($_SESSION['_perms']);
         }
         set_flash('success', 'Permissions saved.');
-        redirect('?tab=roles');
+        redirect("?tab=roles&edit_role=$role_id");
     }
 
     if ($action === 'delete_role') {
