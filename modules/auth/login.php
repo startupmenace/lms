@@ -12,6 +12,7 @@ $page_title = 'Login';
     <title>Login | <?= SITE_NAME ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="<?= BASE_URL ?>/favicon.svg">
 </head>
 <body class="bg-gradient-to-br from-teal-50 via-white to-coral-50 min-h-screen flex items-center justify-center p-4">
     <div class="w-full max-w-md">

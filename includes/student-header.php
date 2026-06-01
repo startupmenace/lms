@@ -29,6 +29,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="icon" type="image/svg+xml" href="<?= BASE_URL ?>/favicon.svg">
 </head>
 <body class="bg-gray-50 font-sans antialiased">
 <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-30 lg:hidden"></div>

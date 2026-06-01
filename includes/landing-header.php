@@ -44,5 +44,6 @@
         .corner-accent::after { content: ''; position: absolute; top: -2px; right: -2px; width: 40px; height: 40px; border-top: 3px solid #f9645a; border-right: 3px solid #f9645a; border-radius: 0 12px 0 0; opacity: 0; transition: opacity 0.3s; }
         .corner-accent:hover::after { opacity: 1; }
     </style>
+    <link rel="icon" type="image/svg+xml" href="<?= BASE_URL ?>/favicon.svg">
 </head>
 <body class="antialiased bg-white">
