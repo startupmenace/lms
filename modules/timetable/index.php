@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../includes/session.php';
 require_once __DIR__ . '/../../includes/functions.php';
-require_role('admin', 'teacher');
+require_module_access('timetable');
 
 $page_title = 'Timetable';
 $tab = $_GET['tab'] ?? 'view';

@@ -58,3 +58,38 @@ function logout() {
     header('Location: ' . BASE_URL . '/modules/auth/login.php');
     exit;
 }
+
+function get_role_permissions() {
+    $role = get_user_role();
+    if (empty($role)) return [];
+    if (isset($_SESSION['_perms']) && $_SESSION['_perms']['role'] === $role) {
+        return $_SESSION['_perms']['modules'];
+    }
+    if ($role === 'admin') {
+        $modules = ['*'];
+        $_SESSION['_perms'] = ['role' => $role, 'modules' => $modules];
+        return $modules;
+    }
+    $rows = db_get_all(
+        "SELECT rp.module FROM role_permissions rp
+         JOIN roles r ON rp.role_id = r.id
+         WHERE r.name = ? AND rp.can_view = 1",
+        [$role]
+    );
+    $modules = array_column($rows, 'module');
+    $_SESSION['_perms'] = ['role' => $role, 'modules' => $modules];
+    return $modules;
+}
+
+function has_module_access($module) {
+    $perms = get_role_permissions();
+    return in_array('*', $perms) || in_array($module, $perms);
+}
+
+function require_module_access($module) {
+    require_login();
+    if (!has_module_access($module)) {
+        header('Location: ' . get_user_dashboard());
+        exit;
+    }
+}

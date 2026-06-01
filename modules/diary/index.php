@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../includes/session.php';
 require_once __DIR__ . '/../../includes/functions.php';
-require_role('admin', 'teacher', 'student');
+require_module_access('diary');
 
 $page_title = 'My Diary';
 $tab = $_GET['tab'] ?? 'entries';

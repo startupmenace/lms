@@ -12,49 +12,83 @@
             <i class="fas fa-user-circle w-5 text-center"></i> My Profile
         </a>
 
-        <?php if (has_role('admin', 'teacher')): ?>
+        <?php
+        $mgmt_modules = ['students','attendance','exams','tests','evaluation','transport','staff','timetable','leave','users'];
+        $has_mgmt = false;
+        foreach ($mgmt_modules as $m) { if (has_module_access($m)) { $has_mgmt = true; break; } }
+        $finance_modules = ['fees'];
+        $has_finance = false;
+        foreach ($finance_modules as $m) { if (has_module_access($m)) { $has_finance = true; break; } }
+        ?>
+
+        <?php if ($has_mgmt): ?>
         <div class="pt-4 pb-1 text-xs font-bold text-gray-500 uppercase tracking-wider">Management</div>
 
+        <?php if (has_module_access('students')): ?>
         <a href="<?= BASE_URL ?>/modules/students/index.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
             <i class="fas fa-user-graduate w-5 text-center"></i> Students
         </a>
+        <?php endif; ?>
 
+        <?php if (has_module_access('attendance')): ?>
         <a href="<?= BASE_URL ?>/modules/attendance/index.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
             <i class="fas fa-calendar-check w-5 text-center"></i> Attendance
         </a>
+        <?php endif; ?>
 
+        <?php if (has_module_access('exams')): ?>
         <a href="<?= BASE_URL ?>/modules/exams/index.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
             <i class="fas fa-pen-clip w-5 text-center"></i> Exam Planner
         </a>
+        <?php endif; ?>
 
+        <?php if (has_module_access('tests')): ?>
         <a href="<?= BASE_URL ?>/modules/tests/index.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
             <i class="fas fa-flask w-5 text-center"></i> Tests
         </a>
+        <?php endif; ?>
 
+        <?php if (has_module_access('evaluation')): ?>
         <a href="<?= BASE_URL ?>/modules/evaluation/index.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
             <i class="fas fa-check-double w-5 text-center"></i> Evaluation
         </a>
+        <?php endif; ?>
 
-        <?php if (has_role('admin')): ?>
+        <?php if (has_module_access('transport')): ?>
         <a href="<?= BASE_URL ?>/modules/transport/index.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
             <i class="fas fa-bus w-5 text-center"></i> Transport
         </a>
         <?php endif; ?>
 
+        <?php if (has_module_access('staff')): ?>
         <a href="<?= BASE_URL ?>/modules/staff/index.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
             <i class="fas fa-users-cog w-5 text-center"></i> Staff
         </a>
+        <?php endif; ?>
 
+        <?php if (has_module_access('timetable')): ?>
         <a href="<?= BASE_URL ?>/modules/timetable/index.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
             <i class="fas fa-table w-5 text-center"></i> Timetable
         </a>
+        <?php endif; ?>
 
+        <?php if (has_module_access('leave')): ?>
         <a href="<?= BASE_URL ?>/modules/leave/index.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
             <i class="fas fa-calendar-alt w-5 text-center"></i> Leave
         </a>
+        <?php endif; ?>
 
+        <?php if (has_module_access('users')): ?>
+        <a href="<?= BASE_URL ?>/modules/users/index.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
+            <i class="fas fa-user-shield w-5 text-center"></i> Users
+        </a>
+        <?php endif; ?>
+        <?php endif; ?>
+
+        <?php if ($has_finance): ?>
         <div class="pt-4 pb-1 text-xs font-bold text-gray-500 uppercase tracking-wider">Finance</div>
 
+        <?php if (has_module_access('fees')): ?>
         <a href="<?= BASE_URL ?>/modules/fees/index.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
             <i class="fas fa-wallet w-5 text-center"></i> Fee Management
         </a>
@@ -64,9 +98,10 @@
         <a href="<?= BASE_URL ?>/modules/fees/verify-payment.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
             <i class="fas fa-check-double w-5 text-center"></i> Verify Payments
         </a>
+        <?php endif; ?>
+        <?php endif; ?>
 
         <div class="pt-4 pb-1 text-xs font-bold text-gray-500 uppercase tracking-wider">Communication</div>
-        <?php endif; ?>
 
         <a href="<?= BASE_URL ?>/modules/chat/index.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
             <i class="fas fa-comments w-5 text-center"></i> Chat

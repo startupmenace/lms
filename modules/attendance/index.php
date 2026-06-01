@@ -17,7 +17,7 @@ if ($class_id) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_attendance'])) {
-    require_role('admin', 'teacher');
+require_module_access('attendance');
     foreach ($_POST['status'] as $student_id => $status) {
         $existing = db_get_row("SELECT id FROM attendance WHERE student_id = ? AND date = ?", [(int)$student_id, $date]);
         if ($existing) {

@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../includes/session.php';
 require_once __DIR__ . '/../../includes/functions.php';
-require_role('admin', 'teacher');
+require_module_access('staff');
 
 $page_title = 'Staff Manager';
 $tab = $_GET['tab'] ?? 'details';

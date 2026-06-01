@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../includes/session.php';
 require_once __DIR__ . '/../../includes/functions.php';
-require_role('admin');
+require_module_access('fees');
 
 $page_title = 'Payment Gateway Settings';
 

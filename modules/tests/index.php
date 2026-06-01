@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../includes/session.php';
 require_once __DIR__ . '/../../includes/functions.php';
-require_role('admin', 'teacher');
+require_module_access('tests');
 
 $page_title = 'Test Management';
 $tests = db_get_all("SELECT t.*, c.name as class_name, s.name as subject_name,

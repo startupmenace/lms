@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../includes/session.php';
 require_once __DIR__ . '/../../includes/functions.php';
-require_login();
+require_module_access('holidays');
 
 $page_title = 'Yearly Calendar';
 
