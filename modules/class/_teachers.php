@@ -1,5 +1,5 @@
 <?php
-$teachers = db_get_all("SELECT ct.*, u.full_name, u.email, u.profile_pic
+$teachers = db_get_all("SELECT ct.*, u.full_name, u.email
     FROM class_teachers ct JOIN users u ON ct.teacher_id=u.id
     WHERE ct.class_id=? ORDER BY FIELD(ct.role,'class_teacher','teacher')", [$class_id]);
 $all_teachers = db_get_all("SELECT id, full_name, email FROM users WHERE role='teacher' AND is_active=1 ORDER BY full_name");

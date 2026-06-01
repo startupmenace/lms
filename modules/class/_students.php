@@ -1,5 +1,5 @@
 <?php
-$students = db_get_all("SELECT s.*, u.full_name, u.email, u.phone, u.profile_pic,
+$students = db_get_all("SELECT s.*, u.full_name, u.email, u.phone,
     (SELECT COUNT(*) FROM attendance a WHERE a.student_id=s.id AND a.date=CURDATE() AND a.status='present') as today_present
     FROM students s JOIN users u ON s.user_id=u.id WHERE s.class_id=? AND s.is_active=1 ORDER BY u.full_name", [$class_id]);
 $student_count = count($students);

@@ -1,7 +1,7 @@
 <?php
 $class_teacher = db_get_row("SELECT u.full_name, u.email, u.phone FROM class_teachers ct JOIN users u ON ct.teacher_id=u.id WHERE ct.class_id=? AND ct.role='class_teacher' LIMIT 1", [$class_id]);
 $date = $_GET['att_date'] ?? date('Y-m-d');
-$students = db_get_all("SELECT s.id, u.full_name, u.profile_pic, s.roll_number FROM students s JOIN users u ON s.user_id=u.id WHERE s.class_id=? AND s.is_active=1 ORDER BY u.full_name", [$class_id]);
+$students = db_get_all("SELECT s.id, u.full_name, s.roll_number FROM students s JOIN users u ON s.user_id=u.id WHERE s.class_id=? AND s.is_active=1 ORDER BY u.full_name", [$class_id]);
 
 $existing = db_get_all("SELECT student_id, status FROM attendance WHERE class_id=? AND date=?", [$class_id, $date]);
 $att_map = [];
