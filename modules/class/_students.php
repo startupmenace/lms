@@ -17,7 +17,7 @@ $student_count = count($students);
                 <th class="pb-2 pr-3 font-medium">Student</th>
                 <th class="pb-2 pr-3 font-medium">Email</th>
                 <th class="pb-2 pr-3 font-medium">Phone</th>
-                <th class="pb-2 pr-3 font-medium">Roll No</th>
+                <th class="pb-2 pr-3 font-medium">Enrollment ID</th>
                 <th class="pb-2 text-center font-medium">Today</th>
             </tr>
         </thead>
@@ -38,7 +38,7 @@ $student_count = count($students);
                 </td>
                 <td class="py-2.5 pr-3 text-xs text-gray-500"><?= sanitize($s['email'] ?? '—') ?></td>
                 <td class="py-2.5 pr-3 text-xs text-gray-500"><?= sanitize($s['phone'] ?? '—') ?></td>
-                <td class="py-2.5 pr-3 text-xs text-gray-500"><?= $s['roll_number'] ?? '—' ?></td>
+                <td class="py-2.5 pr-3 text-xs text-gray-500"><?= sanitize($s['enrollment_id'] ?? '—') ?></td>
                 <td class="py-2.5 text-center">
                     <?php if ($s['today_present'] > 0): ?>
                     <span class="inline-flex items-center gap-1 text-green-600 text-xs"><i class="fas fa-check-circle text-[10px]"></i> Present</span>

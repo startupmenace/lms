@@ -1,7 +1,7 @@
 <?php
 $class_teacher = db_get_row("SELECT u.full_name, u.email, u.phone FROM class_teachers ct JOIN users u ON ct.teacher_id=u.id WHERE ct.class_id=? AND ct.role='class_teacher' LIMIT 1", [$class_id]);
 $date = $_GET['att_date'] ?? date('Y-m-d');
-$students = db_get_all("SELECT s.id, u.full_name, s.roll_number FROM students s JOIN users u ON s.user_id=u.id WHERE s.class_id=? AND s.is_active=1 ORDER BY u.full_name", [$class_id]);
+$students = db_get_all("SELECT s.id, u.full_name FROM students s JOIN users u ON s.user_id=u.id WHERE s.class_id=? AND s.is_active=1 ORDER BY u.full_name", [$class_id]);
 
 $existing = db_get_all("SELECT student_id, status FROM attendance WHERE class_id=? AND date=?", [$class_id, $date]);
 $att_map = [];
@@ -54,13 +54,12 @@ $stats = db_get_row("SELECT COUNT(*) as total, SUM(CASE WHEN status='present' TH
             <thead>
                 <tr class="text-left text-xs text-gray-500 uppercase border-b border-gray-200">
                     <th class="pb-2 pr-3 font-medium">Student</th>
-                    <th class="pb-2 pr-3 font-medium">Roll No</th>
                     <th class="pb-2 font-medium">Status</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($students)): ?>
-                <tr><td colspan="3" class="py-8 text-center text-gray-400 text-xs">No students enrolled.</td></tr>
+                <tr><td colspan="2" class="py-8 text-center text-gray-400 text-xs">No students enrolled.</td></tr>
                 <?php else: ?>
                 <?php foreach ($students as $s): ?>
                 <tr class="border-b border-gray-50 hover:bg-gray-50 transition">
@@ -70,7 +69,6 @@ $stats = db_get_row("SELECT COUNT(*) as total, SUM(CASE WHEN status='present' TH
                             <span class="text-xs font-medium text-gray-900"><?= sanitize($s['full_name']) ?></span>
                         </div>
                     </td>
-                    <td class="py-2 pr-3 text-xs text-gray-500"><?= $s['roll_number'] ?? '—' ?></td>
                     <td class="py-2">
                         <div class="flex gap-1">
                             <?php $cur = $att_map[$s['id']] ?? 'present'; ?>
