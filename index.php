@@ -475,12 +475,12 @@ require_once __DIR__ . '/includes/landing-header.php';
             <div class="bg-gray-50 rounded-2xl p-6 border border-gray-200">
                 <div class="w-12 h-12 bg-coral-100 rounded-xl flex items-center justify-center mx-auto mb-4"><i class="fas fa-phone text-xl text-coral-600"></i></div>
                 <h4 class="font-bold text-gray-900 text-sm">Call Us</h4>
-                <p class="text-gray-500 text-sm mt-1">+254 700 123 456</p>
+                <p class="text-gray-500 text-sm mt-1">+254 703 388 261</p>
             </div>
             <div class="bg-gray-50 rounded-2xl p-6 border border-gray-200">
                 <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-4"><i class="fab fa-whatsapp text-xl text-amber-600"></i></div>
                 <h4 class="font-bold text-gray-900 text-sm">WhatsApp</h4>
-                <p class="text-gray-500 text-sm mt-1">+254 700 123 456</p>
+                <p class="text-gray-500 text-sm mt-1">+254 703 388 261</p>
             </div>
         </div>
     </div>
