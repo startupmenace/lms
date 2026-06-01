@@ -437,7 +437,7 @@ require_once __DIR__ . '/includes/landing-header.php';
                 <p class="text-gray-600 leading-relaxed">"Ziada LMS transformed how we manage our school in Nairobi. Attendance tracking alone saved us hours every week. The fee management module is a game-changer."</p>
                 <div class="mt-6 pt-4 border-t border-gray-100 flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-sm font-bold text-teal-700">JM</div>
-                    <div><p class="text-sm font-bold text-gray-900">Jane Mwangi</p><p class="text-xs text-gray-500">Principal, Nairobi Academy</p></div>
+                    <div><p class="text-sm font-bold text-gray-900">Jane Mwangi</p><p class="text-xs text-gray-500">Principal</p></div>
                 </div>
             </div>
             <div class="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm hover:shadow-lg transition-all">
@@ -445,7 +445,7 @@ require_once __DIR__ . '/includes/landing-header.php';
                 <p class="text-gray-600 leading-relaxed">"The exam planner and test creation tools are incredible. We created our entire mid-term schedule in under an hour. Our students love the portal."</p>
                 <div class="mt-6 pt-4 border-t border-gray-100 flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-sm font-bold text-green-700">PO</div>
-                    <div><p class="text-sm font-bold text-gray-900">Peter Otieno</p><p class="text-xs text-gray-500">Vice Principal, Moi High School</p></div>
+                    <div><p class="text-sm font-bold text-gray-900">Peter Otieno</p><p class="text-xs text-gray-500">Vice Principal</p></div>
                 </div>
             </div>
             <div class="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm hover:shadow-lg transition-all">
@@ -453,7 +453,7 @@ require_once __DIR__ . '/includes/landing-header.php';
                 <p class="text-gray-600 leading-relaxed">"Having everything — attendance, fees, exams, chat — in one platform eliminated our need for 4 different tools. The ROI has been incredible for our school."</p>
                 <div class="mt-6 pt-4 border-t border-gray-100 flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-coral-100 flex items-center justify-center text-sm font-bold text-coral-700">FK</div>
-                    <div><p class="text-sm font-bold text-gray-900">Faith Kamau</p><p class="text-xs text-gray-500">Director, Braeburn Schools</p></div>
+                    <div><p class="text-sm font-bold text-gray-900">Faith Kamau</p><p class="text-xs text-gray-500">Director</p></div>
                 </div>
             </div>
         </div>
