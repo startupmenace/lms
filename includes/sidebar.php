@@ -13,7 +13,7 @@
         </a>
 
         <?php
-        $mgmt_modules = ['students','attendance','exams','tests','evaluation','transport','staff','timetable','leave','users'];
+        $mgmt_modules = ['students','attendance','exams','tests','evaluation','transport','staff','timetable','leave','users','classes'];
         $has_mgmt = false;
         foreach ($mgmt_modules as $m) { if (has_module_access($m)) { $has_mgmt = true; break; } }
         $finance_modules = ['fees'];
@@ -27,6 +27,12 @@
         <?php if (has_module_access('students')): ?>
         <a href="<?= BASE_URL ?>/modules/students/index.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
             <i class="fas fa-user-graduate w-5 text-center"></i> Students
+        </a>
+        <?php endif; ?>
+
+        <?php if (has_module_access('classes')): ?>
+        <a href="<?= BASE_URL ?>/modules/class/index.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
+            <i class="fas fa-school w-5 text-center"></i> Classes
         </a>
         <?php endif; ?>
 
