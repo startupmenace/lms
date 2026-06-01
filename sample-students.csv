@@ -1,0 +1,11 @@
+enrollment_id,student_name,class_name,gender,date_of_birth,parent_name,parent_phone,parent_email,address,city,guardian_name,guardian_phone
+STU-SAMPLE-001,Alice Wanjiku,Class 8,Female,2011-03-15,John Wanjiku,+254711111111,john@example.com,123 Moi Avenue,Nairobi,Mary Wanjiku,+254722222222
+STU-SAMPLE-002,Brian Otieno,Class 9,Male,2010-07-22,Peter Otieno,+254733333333,peter@example.com,45 Kenyatta Rd,Kisumu,Anna Otieno,+254744444444
+STU-SAMPLE-003,Chebet Kimutai,Class 10,Female,2009-11-08,David Kimutai,+254755555555,david@example.com,78 Eldoret Rd,Eldoret,Mercy Kimutai,+254766666666
+STU-SAMPLE-004,Dennis Mwangi,Class 8,Male,2012-01-30,Samuel Mwangi,+254777777777,samuel@example.com,12 River Road,Nairobi,Grace Mwangi,+254788888888
+STU-SAMPLE-005,Esther Akinyi,Class 9,Female,2011-05-14,James Akinyi,+254799999999,james@example.com,56 Kisumu Rd,Mombasa,Ruth Akinyi,+254700111111
+STU-SAMPLE-006,Francis Kamau,Pre Primary,Male,2017-09-01,Michael Kamau,+254700222222,michael@example.com,34 Langata Rd,Nairobi,Jane Kamau,+254700333333
+STU-SAMPLE-007,Gladys Nyambura,Primary,Female,2013-04-18,Patrick Nyambura,+254700444444,patrick@example.com,90 Thika Rd,Thika,Agnes Nyambura,+254700555555
+STU-SAMPLE-008,Hassan Ali,Class 10,Male,2009-08-12,Suleiman Ali,+254700666666,suleiman@example.com,23 Mosque Rd,Nairobi,Fatima Ali,+254700777777
+STU-SAMPLE-009,Irene Wambui,Class 9,Female,2010-12-25,Joseph Wambui,+254700888888,joseph@example.com,67 Kimathi St,Nyeri,Catherine Wambui,+254700999999
+STU-SAMPLE-010,James Kiprop,Class 8,Male,2011-06-30,William Kiprop,+254711222333,william@example.com,15 Iten Rd,Eldoret,Sarah Kiprop,+254711444555

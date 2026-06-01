@@ -34,6 +34,9 @@ include __DIR__ . '/../../includes/header.php';
     <a href="create.php" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-700 transition flex items-center gap-2">
         <i class="fas fa-plus"></i> Add New Student
     </a>
+    <a href="import.php" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition flex items-center gap-2">
+        <i class="fas fa-file-csv"></i> Import CSV
+    </a>
 </div>
 
 <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6">
