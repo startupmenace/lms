@@ -43,7 +43,8 @@ $homework_count = db_get_row("SELECT COUNT(*) as count FROM homework WHERE class
             <?php if (empty($week_att)): ?>
             <p class="text-gray-400 text-xs text-center py-4">No attendance records this week.</p>
             <?php else: ?>
-            <div class="flex items-end gap-2 h-24">
+            <div class="overflow-x-auto -mx-4 px-4">
+                <div class="flex items-end gap-2 h-24" style="min-width:280px">
                 <?php foreach ($week_att as $w): 
                     $pct = $w['total'] > 0 ? ($w['present'] / $w['total']) * 100 : 0;
                 ?>
