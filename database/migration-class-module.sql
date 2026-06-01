@@ -59,3 +59,6 @@ SELECT r.id, 'classes', 1 FROM roles r WHERE r.name IN ('admin','teacher','manag
 
 INSERT IGNORE INTO role_permissions (role_id, module, can_view)
 SELECT r.id, 'homework', 1 FROM roles r WHERE r.name IN ('admin','teacher','manager');
+
+INSERT IGNORE INTO role_permissions (role_id, module, can_view)
+SELECT r.id, 'hr', 1 FROM roles r WHERE r.name IN ('admin');

@@ -22,6 +22,7 @@ $all_modules = [
     'live-class' => 'Live Class',
     'chat' => 'Chat',
     'users' => 'User Management',
+    'hr' => 'HR Module',
 ];
 ?>
 <div class="flex flex-col lg:flex-row gap-6">

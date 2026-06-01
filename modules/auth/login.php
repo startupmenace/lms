@@ -19,7 +19,7 @@ $page_title = 'Login';
             <div class="inline-flex items-center justify-center w-16 h-16 bg-teal-100 rounded-2xl mb-4">
                 <i class="fas fa-graduation-cap text-3xl text-teal-600"></i>
             </div>
-            <h1 class="text-2xl font-bold text-gray-900">Welcome to Jewel House School</h1>
+            <h1 class="text-2xl font-bold text-gray-900">Welcome to Ziada LMS</h1>
             <p class="text-gray-500 mt-1">Sign in to your LMS account</p>
         </div>
 

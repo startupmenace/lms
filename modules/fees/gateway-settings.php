@@ -144,7 +144,7 @@ include __DIR__ . '/../../includes/header.php';
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Account Name</label>
-                    <input type="text" name="cfg_account_name" value="<?= sanitize($bank_config['account_name'] ?? '') ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none" placeholder="e.g., Jewel House School">
+                    <input type="text" name="cfg_account_name" value="<?= sanitize($bank_config['account_name'] ?? '') ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none" placeholder="e.g., Ziada LMS">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Account Number</label>

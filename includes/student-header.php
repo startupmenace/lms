@@ -38,7 +38,7 @@
             <div>
                 <h1 class="text-xl font-bold text-teal-600 flex items-center gap-2">
                     <i class="fas fa-graduation-cap"></i>
-                    <a href="<?= BASE_URL ?>/modules/student/dashboard.php">Jewel House School</a>
+                    <a href="<?= BASE_URL ?>/modules/student/dashboard.php">Ziada LMS</a>
                 </h1>
                 <p class="text-xs text-gray-400 mt-1">Student Portal</p>
             </div>

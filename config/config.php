@@ -4,7 +4,7 @@ if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') $protocol = 'https
 if ($_SERVER['SERVER_PORT'] == 443) $protocol = 'https';
 if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && strpos($_SERVER['HTTP_X_FORWARDED_PROTO'], 'https') !== false) $protocol = 'https';
 define('BASE_URL', $protocol . '://' . $_SERVER['HTTP_HOST']);
-define('SITE_NAME', 'Jewel House School');
+define('SITE_NAME', 'Ziada LMS');
 define('TIMEZONE', 'Africa/Nairobi');
 define('UPLOAD_PATH', __DIR__ . '/../uploads/');
 define('MAX_FILE_SIZE', 52428800);

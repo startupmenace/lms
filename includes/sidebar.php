@@ -1,6 +1,6 @@
 <aside id="sidebar" class="fixed lg:relative inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 flex flex-col -translate-x-full lg:translate-x-0 transition-transform duration-300">
     <div class="p-4 border-b border-gray-200 flex items-center justify-between">
-        <h1 class="text-xl font-bold text-teal-600"><i class="fas fa-graduation-cap mr-2"></i>Jewel House School</h1>
+        <h1 class="text-xl font-bold text-teal-600"><i class="fas fa-graduation-cap mr-2"></i>Ziada LMS</h1>
         <button id="sidebar-close" class="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition"><i class="fas fa-times"></i></button>
     </div>
     <nav class="flex-1 overflow-y-auto p-4 space-y-1">
@@ -13,7 +13,7 @@
         </a>
 
         <?php
-        $mgmt_modules = ['students','attendance','exams','tests','evaluation','transport','staff','timetable','leave','users','classes'];
+        $mgmt_modules = ['students','attendance','exams','tests','evaluation','transport','staff','timetable','leave','users','classes','hr'];
         $has_mgmt = false;
         foreach ($mgmt_modules as $m) { if (has_module_access($m)) { $has_mgmt = true; break; } }
         $finance_modules = ['fees'];
@@ -87,6 +87,13 @@
         <?php if (has_module_access('users')): ?>
         <a href="<?= BASE_URL ?>/modules/users/index.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
             <i class="fas fa-user-shield w-5 text-center"></i> Users
+        </a>
+        <?php endif; ?>
+
+        <?php if (has_module_access('hr')): ?>
+        <a href="<?= BASE_URL ?>/modules/hr/index.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
+            <i class="fas fa-users w-5 text-center"></i> HR
+            <span class="ml-auto text-[9px] bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded">Beta</span>
         </a>
         <?php endif; ?>
         <?php endif; ?>

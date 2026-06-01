@@ -17,12 +17,12 @@ require_once __DIR__ . '/includes/landing-header.php';
         <div class="flex items-center justify-between h-16 lg:h-20">
             <a href="/" class="flex items-center gap-2.5 text-xl font-bold">
                 <span class="w-9 h-9 bg-gradient-to-br from-teal-500 to-coral-500 rounded-xl flex items-center justify-center text-white text-sm"><i class="fas fa-graduation-cap"></i></span>
-                <span class="text-gray-900">Jewel House School</span>
+                <span class="text-gray-900">Ziada LMS</span>
             </a>
             <div class="hidden lg:flex items-center gap-8 text-sm font-medium text-gray-600">
                 <a href="#features" class="hover:text-teal-600 transition">Features</a>
                 <a href="#modules" class="hover:text-teal-600 transition">Modules</a>
-                <a href="#pricing" class="hover:text-teal-600 transition">Pricing</a>
+                <a href="#contact" class="hover:text-teal-600 transition">Pricing</a>
                 <a href="#testimonials" class="hover:text-teal-600 transition">Testimonials</a>
                 <a href="#faq" class="hover:text-teal-600 transition">FAQ</a>
             </div>
@@ -41,7 +41,7 @@ require_once __DIR__ . '/includes/landing-header.php';
         <div class="px-4 py-4 space-y-2">
             <a href="#features" class="block px-4 py-3 rounded-xl text-sm font-medium text-gray-600 hover:bg-teal-50 hover:text-teal-700 transition" onclick="closeMenu()">Features</a>
             <a href="#modules" class="block px-4 py-3 rounded-xl text-sm font-medium text-gray-600 hover:bg-teal-50 hover:text-teal-700 transition" onclick="closeMenu()">Modules</a>
-            <a href="#pricing" class="block px-4 py-3 rounded-xl text-sm font-medium text-gray-600 hover:bg-teal-50 hover:text-teal-700 transition" onclick="closeMenu()">Pricing</a>
+                    <a href="#contact" class="block px-4 py-3 rounded-xl text-sm font-medium text-gray-600 hover:bg-teal-50 hover:text-teal-700 transition" onclick="closeMenu()">Pricing</a>
             <a href="#testimonials" class="block px-4 py-3 rounded-xl text-sm font-medium text-gray-600 hover:bg-teal-50 hover:text-teal-700 transition" onclick="closeMenu()">Testimonials</a>
             <a href="#faq" class="block px-4 py-3 rounded-xl text-sm font-medium text-gray-600 hover:bg-teal-50 hover:text-teal-700 transition" onclick="closeMenu()">FAQ</a>
             <hr class="border-gray-100 my-2">
@@ -69,7 +69,7 @@ require_once __DIR__ . '/includes/landing-header.php';
                     <span class="gradient-text">School's Future</span>
                 </h1>
                 <p class="text-lg sm:text-xl text-gray-600 mt-6 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                    From attendance and exams to fees and live classes — Jewel House School brings every aspect of school management into one powerful, beautifully designed platform.
+                    From attendance and exams to fees and live classes — Ziada LMS brings every aspect of school management into one powerful, beautifully designed platform.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 mt-10 justify-center lg:justify-start">
                     <a href="modules/auth/login.php" class="bg-gradient-to-r from-teal-500 to-coral-500 text-white px-8 py-4 rounded-xl text-base font-semibold hover:shadow-xl hover:shadow-teal-200/50 transition-all inline-flex items-center justify-center gap-3 group">
@@ -95,9 +95,9 @@ require_once __DIR__ . '/includes/landing-header.php';
                         <div class="w-3 h-3 rounded-full bg-red-500"></div>
                         <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
                         <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span class="text-xs text-gray-400 ml-2 font-medium">Jewel House School — Dashboard</span>
+                        <span class="text-xs text-gray-400 ml-2 font-medium">Ziada LMS — Dashboard</span>
                     </div>
-                    <img src="ref-images/LMS1.png" alt="Jewel House School Dashboard" class="w-full rounded-xl" onerror="this.style.display='none'">
+                    <img src="ref-images/LMS1.png" alt="Ziada LMS Dashboard" class="w-full rounded-xl" onerror="this.style.display='none'">
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-3 px-1 pb-1">
                         <div class="bg-gradient-to-br from-teal-50 to-teal-100/50 rounded-xl p-3 text-center">
                             <p class="text-xs font-semibold text-teal-700">Students</p>
@@ -128,51 +128,13 @@ require_once __DIR__ . '/includes/landing-header.php';
     </div>
 </section>
 
-<!-- ====== TRUSTED BY / PARTNER LOGOS ====== -->
-<section class="py-14 border-y border-gray-100 bg-gray-50/50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <p class="text-center text-xs font-semibold tracking-widest text-gray-400 uppercase mb-8">Trusted by leading schools across Kenya &amp; East Africa</p>
-        <div class="flex flex-wrap items-center justify-center gap-x-12 gap-y-6 opacity-50">
-            <span class="text-xl font-bold text-gray-400"><i class="fas fa-school mr-2"></i>Nairobi Academy</span>
-            <span class="text-xl font-bold text-gray-400"><i class="fas fa-school mr-2"></i>Moi High School</span>
-            <span class="text-xl font-bold text-gray-400"><i class="fas fa-school mr-2"></i>Strathmore School</span>
-            <span class="text-xl font-bold text-gray-400"><i class="fas fa-school mr-2"></i>Braeburn Schools</span>
-            <span class="text-xl font-bold text-gray-400"><i class="fas fa-school mr-2"></i>Brookhouse Sch.</span>
-        </div>
-    </div>
-</section>
-
-<!-- ====== STATS COUNTER ====== -->
-<section class="py-16 gradient-bg">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12 text-center">
-            <div class="relative">
-                <p class="text-4xl lg:text-5xl font-bold text-white">50K+</p>
-                <p class="text-teal-200 text-sm mt-1 font-medium">Active Students</p>
-            </div>
-            <div class="relative">
-                <p class="text-4xl lg:text-5xl font-bold text-white">1K+</p>
-                <p class="text-teal-200 text-sm mt-1 font-medium">Partner Schools</p>
-            </div>
-            <div class="relative">
-                <p class="text-4xl lg:text-5xl font-bold text-white">10K+</p>
-                <p class="text-teal-200 text-sm mt-1 font-medium">Exams Conducted</p>
-            </div>
-            <div class="relative">
-                <p class="text-4xl lg:text-5xl font-bold text-white">98%</p>
-                <p class="text-teal-200 text-sm mt-1 font-medium">Satisfaction Rate</p>
-            </div>
-        </div>
-    </div>
-</section>
-
 <!-- ====== FEATURES OVERVIEW ====== -->
 <section id="features" class="py-20 lg:py-28 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-16">
             <span class="text-teal-600 font-semibold text-sm uppercase tracking-[0.2em]">Everything You Need</span>
             <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mt-4 leading-tight">All-in-One School <span class="gradient-text">Management Platform</span></h2>
-            <p class="text-gray-500 text-lg mt-4">From classroom management to financial tracking, Jewel House School equips your school with every tool to thrive in the digital age.</p>
+            <p class="text-gray-500 text-lg mt-4">From classroom management to financial tracking, Ziada LMS equips your school with every tool to thrive in the digital age.</p>
         </div>
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             <div class="feature-card bg-white border border-gray-200 rounded-2xl p-8 group relative overflow-hidden">
@@ -380,7 +342,7 @@ require_once __DIR__ . '/includes/landing-header.php';
             <div>
                 <span class="text-teal-600 font-semibold text-sm uppercase tracking-[0.2em]">Enriching Experience</span>
                 <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mt-4 leading-tight">An Ecosystem That<br><span class="gradient-text">Benefits Everyone</span></h2>
-                <p class="text-gray-500 mt-4 text-lg leading-relaxed">Jewel House School isn't just software — it's a complete ecosystem designed to make every stakeholder's life easier and more productive.</p>
+                <p class="text-gray-500 mt-4 text-lg leading-relaxed">Ziada LMS isn't just software — it's a complete ecosystem designed to make every stakeholder's life easier and more productive.</p>
                 <div class="mt-10 grid sm:grid-cols-2 gap-6">
                     <div class="bg-teal-50/50 rounded-2xl p-6 border border-teal-100/50">
                         <div class="w-10 h-10 bg-teal-100 rounded-xl flex items-center justify-center mb-3"><i class="fas fa-user-graduate text-lg text-teal-600"></i></div>
@@ -472,7 +434,7 @@ require_once __DIR__ . '/includes/landing-header.php';
         <div class="grid md:grid-cols-3 gap-8">
             <div class="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm hover:shadow-lg transition-all">
                 <div class="flex text-amber-400 gap-1 mb-4"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-                <p class="text-gray-600 leading-relaxed">"Jewel House School transformed how we manage our school in Nairobi. Attendance tracking alone saved us hours every week. The fee management module is a game-changer."</p>
+                <p class="text-gray-600 leading-relaxed">"Ziada LMS transformed how we manage our school in Nairobi. Attendance tracking alone saved us hours every week. The fee management module is a game-changer."</p>
                 <div class="mt-6 pt-4 border-t border-gray-100 flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-sm font-bold text-teal-700">JM</div>
                     <div><p class="text-sm font-bold text-gray-900">Jane Mwangi</p><p class="text-xs text-gray-500">Principal, Nairobi Academy</p></div>
@@ -498,55 +460,27 @@ require_once __DIR__ . '/includes/landing-header.php';
     </div>
 </section>
 
-<!-- ====== PRICING ====== -->
-<section id="pricing" class="py-20 lg:py-28 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center max-w-3xl mx-auto mb-16">
-            <span class="text-teal-600 font-semibold text-sm uppercase tracking-[0.2em]">Pricing</span>
-            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mt-4 leading-tight">Simple, Transparent <span class="gradient-text">Pricing</span></h2>
-            <p class="text-gray-500 text-lg mt-4">Start free, scale as you grow. No hidden fees, no long-term contracts.</p>
-        </div>
-        <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div class="bg-white border-2 border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 hover:border-teal-200 transition-all hover:shadow-xl">
-                <h3 class="text-lg font-bold text-gray-900">Starter</h3>
-                <p class="text-4xl font-bold text-gray-900 mt-4">Free</p>
-                <p class="text-gray-500 text-sm">Forever free for small schools</p>
-                <ul class="mt-6 space-y-3 text-sm text-gray-600">
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Up to 100 students</li>
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Basic attendance</li>
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Student management</li>
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Email support</li>
-                </ul>
-                <a href="modules/auth/login.php" class="mt-8 block w-full text-center border-2 border-gray-200 text-gray-700 py-3 rounded-xl font-semibold hover:border-teal-300 transition">Get Started</a>
+<!-- ====== CONTACT / QUOTE ====== -->
+<section id="contact" class="py-20 lg:py-28 bg-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <span class="text-teal-600 font-semibold text-sm uppercase tracking-[0.2em]">Get Started</span>
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mt-4 leading-tight">Contact Us Today to<br><span class="gradient-text">Get a Quote</span></h2>
+        <p class="text-gray-500 text-lg mt-4 max-w-2xl mx-auto">Ready to streamline your school management? Reach out to our team and we'll tailor a plan that fits your institution's needs.</p>
+        <div class="mt-12 grid sm:grid-cols-3 gap-6 max-w-2xl mx-auto">
+            <div class="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                <div class="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center mx-auto mb-4"><i class="fas fa-envelope text-xl text-teal-600"></i></div>
+                <h4 class="font-bold text-gray-900 text-sm">Email Us</h4>
+                <p class="text-gray-500 text-sm mt-1">hello@ziadalms.com</p>
             </div>
-            <div class="bg-gradient-to-b from-white to-teal-50/50 border-2 border-teal-200 rounded-2xl p-5 sm:p-6 lg:p-8 shadow-xl shadow-teal-100 relative">
-                <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-teal-500 to-coral-500 text-white text-xs font-bold px-4 py-1 rounded-full">Most Popular</div>
-                <h3 class="text-lg font-bold text-gray-900">Professional</h3>
-                <p class="text-4xl font-bold text-gray-900 mt-4">KSh 999<span class="text-lg font-normal text-gray-400">/mo</span></p>
-                <p class="text-gray-500 text-sm">For growing schools</p>
-                <ul class="mt-6 space-y-3 text-sm text-gray-600">
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Up to 500 students</li>
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Everything in Starter</li>
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Exam planner &amp; tests</li>
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Fee management</li>
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Chat &amp; notice board</li>
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Priority support</li>
-                </ul>
-                <a href="modules/auth/login.php" class="mt-8 block w-full text-center bg-gradient-to-r from-teal-500 to-coral-500 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition">Start Free Trial</a>
+            <div class="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                <div class="w-12 h-12 bg-coral-100 rounded-xl flex items-center justify-center mx-auto mb-4"><i class="fas fa-phone text-xl text-coral-600"></i></div>
+                <h4 class="font-bold text-gray-900 text-sm">Call Us</h4>
+                <p class="text-gray-500 text-sm mt-1">+254 700 123 456</p>
             </div>
-            <div class="bg-white border-2 border-gray-200 rounded-2xl p-5 sm:p-6 lg:p-8 hover:border-teal-200 transition-all hover:shadow-xl">
-                <h3 class="text-lg font-bold text-gray-900">Enterprise</h3>
-                <p class="text-4xl font-bold text-gray-900 mt-4">KSh 2,499<span class="text-lg font-normal text-gray-400">/mo</span></p>
-                <p class="text-gray-500 text-sm">Unlimited everything</p>
-                <ul class="mt-6 space-y-3 text-sm text-gray-600">
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Unlimited students</li>
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Everything in Professional</li>
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Live classes &amp; polls</li>
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Custom integrations</li>
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Dedicated account manager</li>
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> 24/7 phone support</li>
-                </ul>
-                <a href="modules/auth/login.php" class="mt-8 block w-full text-center border-2 border-gray-200 text-gray-700 py-3 rounded-xl font-semibold hover:border-teal-300 transition">Contact Sales</a>
+            <div class="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-4"><i class="fab fa-whatsapp text-xl text-amber-600"></i></div>
+                <h4 class="font-bold text-gray-900 text-sm">WhatsApp</h4>
+                <p class="text-gray-500 text-sm mt-1">+254 700 123 456</p>
             </div>
         </div>
     </div>
@@ -562,24 +496,17 @@ require_once __DIR__ . '/includes/landing-header.php';
         <div class="space-y-4">
             <details class="bg-white rounded-2xl border border-gray-200 p-6 group open:border-teal-200 open:shadow-sm transition-all">
                 <summary class="flex items-center justify-between cursor-pointer font-semibold text-gray-900 list-none">
-                    What is Jewel House School and who is it for?
+                    What is Ziada LMS and who is it for?
                     <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition"></i>
                 </summary>
-                <p class="mt-4 text-gray-600 leading-relaxed">Jewel House School is a comprehensive school management platform designed for K-12 schools, coaching institutes, and educational organizations. It serves administrators, teachers, students, and parents.</p>
-            </details>
-            <details class="bg-white rounded-2xl border border-gray-200 p-6 group open:border-teal-200 open:shadow-sm transition-all">
-                <summary class="flex items-center justify-between cursor-pointer font-semibold text-gray-900 list-none">
-                    Is there a free plan available?
-                    <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition"></i>
-                </summary>
-                <p class="mt-4 text-gray-600 leading-relaxed">Yes! Our Starter plan is completely free for schools with up to 100 students. No credit card required. You can upgrade anytime as your school grows.</p>
+                <p class="mt-4 text-gray-600 leading-relaxed">Ziada LMS is a comprehensive school management platform designed for K-12 schools, coaching institutes, and educational organizations. It serves administrators, teachers, students, and parents.</p>
             </details>
             <details class="bg-white rounded-2xl border border-gray-200 p-6 group open:border-teal-200 open:shadow-sm transition-all">
                 <summary class="flex items-center justify-between cursor-pointer font-semibold text-gray-900 list-none">
                     Can I import existing student data?
                     <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition"></i>
                 </summary>
-                <p class="mt-4 text-gray-600 leading-relaxed">Absolutely. Jewel House School supports bulk import from CSV/Excel files. Our onboarding team will help you migrate your existing data seamlessly.</p>
+                <p class="mt-4 text-gray-600 leading-relaxed">Absolutely. Ziada LMS supports bulk import from CSV/Excel files. Our onboarding team will help you migrate your existing data seamlessly.</p>
             </details>
             <details class="bg-white rounded-2xl border border-gray-200 p-6 group open:border-teal-200 open:shadow-sm transition-all">
                 <summary class="flex items-center justify-between cursor-pointer font-semibold text-gray-900 list-none">
@@ -607,13 +534,13 @@ require_once __DIR__ . '/includes/landing-header.php';
     </div>
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
         <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight">Ready to Transform<br>Your School?</h2>
-        <p class="text-teal-100 mt-6 text-lg max-w-2xl mx-auto">Join 1,000+ schools already using Jewel House School to streamline operations, engage students, and empower teachers.</p>
+        <p class="text-teal-100 mt-6 text-lg max-w-2xl mx-auto">Join schools across East Africa already using Ziada LMS to streamline operations, engage students, and empower teachers.</p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center mt-10">
             <a href="modules/auth/login.php" class="bg-white text-teal-700 px-10 py-4 rounded-xl text-lg font-bold hover:bg-teal-50 transition-all shadow-2xl inline-flex items-center justify-center gap-3 group">
                 <i class="fas fa-sign-in-alt group-hover:translate-x-1 transition"></i> Sign In Free
             </a>
         </div>
-        <p class="text-teal-200 text-sm mt-6">No credit card required • Free forever plan available • 30-day money-back guarantee</p>
+        <p class="text-teal-200 text-sm mt-6">Get in touch with our team for a personalised demo and quote</p>
     </div>
 </section>
 
@@ -624,9 +551,9 @@ require_once __DIR__ . '/includes/landing-header.php';
             <div class="lg:col-span-2">
                 <h3 class="text-white text-xl font-bold mb-4 flex items-center gap-2">
                     <span class="w-9 h-9 bg-gradient-to-br from-teal-500 to-coral-600 rounded-xl flex items-center justify-center text-white text-sm"><i class="fas fa-graduation-cap"></i></span>
-                    Jewel House School
+                    Ziada LMS
                 </h3>
-                <p class="text-sm leading-relaxed max-w-sm">Powered by <strong class="text-white">Techture Limited</strong> — A complete school management platform designed for modern education. Empowering schools across East Africa.</p>
+                <p class="text-sm leading-relaxed max-w-sm">A complete school management platform designed for modern education. Empowering schools across East Africa.</p>
                 <div class="flex gap-4 mt-6">
                     <a href="#" class="w-10 h-10 bg-gray-800 rounded-xl flex items-center justify-center hover:bg-teal-600 transition"><i class="fab fa-facebook-f"></i></a>
                     <a href="#" class="w-10 h-10 bg-gray-800 rounded-xl flex items-center justify-center hover:bg-teal-600 transition"><i class="fab fa-twitter"></i></a>
@@ -638,7 +565,7 @@ require_once __DIR__ . '/includes/landing-header.php';
                 <h4 class="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Platform</h4>
                 <ul class="space-y-3 text-sm">
                     <li><a href="#features" class="hover:text-white transition">Features</a></li>
-                    <li><a href="#pricing" class="hover:text-white transition">Pricing</a></li>
+                    <li><a href="#contact" class="hover:text-white transition">Pricing</a></li>
                     <li><a href="#" class="hover:text-white transition">Integrations</a></li>
                     <li><a href="#" class="hover:text-white transition">API</a></li>
                     <li><a href="#" class="hover:text-white transition">Changelog</a></li>
@@ -666,7 +593,7 @@ require_once __DIR__ . '/includes/landing-header.php';
             </div>
         </div>
         <div class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
-            <p>&copy; <?= date('Y') ?> Jewel House School &amp; Techture Limited. All rights reserved.</p>
+            <p>&copy; <?= date('Y') ?> Ziada LMS. All rights reserved.</p>
             <div class="flex gap-6">
                 <a href="#" class="hover:text-white transition">Privacy Policy</a>
                 <a href="#" class="hover:text-white transition">Terms of Service</a>

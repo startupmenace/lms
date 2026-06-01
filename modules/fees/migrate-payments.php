@@ -21,7 +21,7 @@ $messages[] = "Table `payment_gateway_config` ready.";
 
 $defaults = [
     ['mpesa', 'M-Pesa', '{"paybill":"247247","till":"","account_format":"Student Name - Invoice No"}', 'Send via M-Pesa Paybill 247247. Use name + invoice as account number.'],
-    ['bank_transfer', 'Bank Transfer', '{"bank_name":"Equity Bank","account_name":"Jewel House School","account_number":"1234567890","branch":"Nairobi"}', 'Transfer to our Equity Bank account. Upload receipt below.']
+    ['bank_transfer', 'Bank Transfer', '{"bank_name":"Equity Bank","account_name":"Ziada LMS","account_number":"1234567890","branch":"Nairobi"}', 'Transfer to our Equity Bank account. Upload receipt below.']
 ];
 
 foreach ($defaults as $d) {
