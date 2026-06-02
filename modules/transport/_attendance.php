@@ -10,19 +10,19 @@ $attendance_records = [];
 
 if ($att_route_id) {
     $students_on_route = db_get_all("SELECT rs.id as rs_id, rs.student_id, rs.stop_id, rs.fee_amount,
-            u.name as student_name, s.enrollment_id, rs2.name as stop_name
+            u.full_name as student_name, s.enrollment_id, rs2.name as stop_name
         FROM transport_route_students rs
         JOIN students s ON rs.student_id = s.id
         JOIN users u ON s.user_id = u.id
         LEFT JOIN transport_route_stops rs2 ON rs.stop_id = rs2.id
         WHERE rs.route_id = ? AND rs.status='active'
-        ORDER BY u.name", [$att_route_id]);
+        ORDER BY u.full_name", [$att_route_id]);
 
     $attendance_records = db_get_all("SELECT student_id, status, remarks FROM transport_attendance WHERE route_id=? AND date=? AND trip_type=?", [$att_route_id, $att_date, $trip_type]);
     $attendance_records = array_column($attendance_records, null, 'student_id');
 }
 
-$recent_attendance = db_get_all("SELECT ta.*, u.name as student_name, r.name as route_name
+$recent_attendance = db_get_all("SELECT ta.*, u.full_name as student_name, r.name as route_name
     FROM transport_attendance ta
     JOIN students s ON ta.student_id = s.id
     JOIN users u ON s.user_id = u.id

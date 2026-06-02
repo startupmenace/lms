@@ -33,6 +33,15 @@
         if (overlay) overlay.addEventListener('click', closeSidebar);
     })();
     </script>
+    <script>
+    document.addEventListener('click', function(e) {
+        var el = e.target.closest('[data-confirm]');
+        if (!el) return;
+        if (!confirm(el.getAttribute('data-confirm'))) {
+            e.preventDefault();
+        }
+    });
+    </script>
     <?php endif; ?>
 </body>
 </html>

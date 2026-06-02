@@ -6,8 +6,8 @@ require_role('admin', 'teacher');
 $id = (int)($_GET['id'] ?? 0);
 $student = db_get_row("SELECT * FROM students WHERE id = ?", [$id]);
 
-if (!$student || $_SERVER['REQUEST_METHOD'] !== 'POST') {
-    set_flash('error', 'Invalid request.');
+if (!$student) {
+    set_flash('error', 'Student not found.');
     redirect('index.php');
 }
 

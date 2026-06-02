@@ -22,12 +22,12 @@ if ($selected_route_id) {
 
 $students = [];
 if ($class_filter) {
-    $students = db_get_all("SELECT s.id, s.enrollment_id, s.parent_phone, u.name as student_name, c.name as class_name
+    $students = db_get_all("SELECT s.id, s.enrollment_id, s.parent_phone, u.full_name as student_name, c.name as class_name
         FROM students s
         JOIN users u ON s.user_id = u.id
         LEFT JOIN classes c ON s.class_id = c.id
         WHERE s.class_id = ? AND s.is_active = 1
-        ORDER BY u.name", [$class_filter]);
+        ORDER BY u.full_name", [$class_filter]);
 }
 
 $route_stops = [];
@@ -37,7 +37,7 @@ if ($selected_route_id) {
 
 $assignments = [];
 if ($selected_route_id) {
-    $assignments = db_get_all("SELECT rs.*, u.name as student_name, s.enrollment_id, s.parent_phone, c.name as class_name, rs2.name as stop_name
+    $assignments = db_get_all("SELECT rs.*, u.full_name as student_name, s.enrollment_id, s.parent_phone, c.name as class_name, rs2.name as stop_name
         FROM transport_route_students rs
         JOIN students s ON rs.student_id = s.id
         JOIN users u ON s.user_id = u.id
