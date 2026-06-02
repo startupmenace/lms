@@ -10,16 +10,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run pending migrations
+      - name: Run migrations via SSH
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || '22' }}
+          script: |
+            cd /app
+            git pull origin master
+            for f in database/migration-*.sql; do
+              echo "→ Running $f ..."
+              mysql -u "$DB_USER" -p"$DB_PASSWORD" "$DB_DATABASE" < "$f" 2>&1
+              echo "  done."
+            done
+          envs: DB_USER,DB_PASSWORD,DB_DATABASE
         env:
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT || '3306' }}
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_NAME: ${{ secrets.DB_DATABASE }}
-        run: |
-          for f in database/migration-*.sql; do
-            echo "→ Running $f ..."
-            mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" < "$f" 2>&1
-            echo "  done."
-          done
+          DB_DATABASE: ${{ secrets.DB_DATABASE }}
