@@ -41,17 +41,38 @@ echo "📄 Loading expected schema from $sql_file ...\n\n";
 
 // ── Parse expected CREATE TABLE statements from SQL file ──
 $content = file_get_contents($sql_file);
-preg_match_all('/CREATE TABLE\s+`?(\w+)`?\s*\(([^;]+)\)/is', $content, $matches, PREG_SET_ORDER);
+preg_match_all('/CREATE TABLE\s+`?(\w+)`?\s*\(((?:[^()]|\([^()]*\))*)\)\s*(?:ENGINE|=)/is', $content, $matches, PREG_SET_ORDER);
 
 $expected_tables = [];
 foreach ($matches as $m) {
     $table = $m[1];
     $body  = $m[2];
     $cols = [];
-    preg_match_all('/^\s*`(\w+)`\s+([^,\n]+)/m', $body, $col_matches, PREG_SET_ORDER);
-    foreach ($col_matches as $cm) {
-        $type_part = explode(' ', trim($cm[2]));
-        $cols[$cm[1]] = strtoupper($type_part[0]);
+
+    // Split on top-level commas only (skip commas inside parentheses)
+    $parts = [];
+    $depth = 0;
+    $buf = '';
+    for ($i = 0, $len = strlen($body); $i < $len; $i++) {
+        $ch = $body[$i];
+        if ($ch === '(') $depth++;
+        elseif ($ch === ')') $depth--;
+        elseif ($ch === ',' && $depth === 0) { $parts[] = trim($buf); $buf = ''; continue; }
+        $buf .= $ch;
+    }
+    if (trim($buf)) $parts[] = trim($buf);
+
+    foreach ($parts as $part) {
+        if (!preg_match('/^\s*`(\w+)`\s+(.+)/i', $part, $cm)) continue;
+        $col = $cm[1];
+        $def = trim($cm[2]);
+        // Base type + modifiers (stop before NOT NULL, DEFAULT, etc.)
+        if (preg_match('/^(\w+(?:\([^)]*\))?(?:\s+(?:unsigned|signed|character\s+set\s+\w+|collate\s+\w+|binary|zerofill|ascii|unicode))*)/i', $def, $type_m)) {
+            $raw = rtrim($type_m[1], ' ,');
+        } else {
+            $raw = rtrim($def, ' ,');
+        }
+        $cols[$col] = $raw;
     }
     $expected_tables[$table] = $cols;
 }
@@ -83,9 +104,9 @@ foreach ($expected_tables as $table => $expected_cols) {
 
     foreach ($expected_cols as $col => $exp_type) {
         if (isset($live_cols[$col])) {
-            $live_type = strtoupper(preg_replace('/\(.*\)/', '', $live_cols[$col]));
-            $exp_base = strtoupper(preg_replace('/\(.*\)/', '', $exp_type));
-            if ($live_type !== $exp_base) {
+            $norm1 = strtoupper(preg_replace('/\s/', '', $exp_type));
+            $norm2 = strtoupper(preg_replace('/\s/', '', $live_cols[$col]));
+            if ($norm1 !== $norm2) {
                 $type_mismatch[] = "  `$col` expected $exp_type, got {$live_cols[$col]}";
             }
         }
