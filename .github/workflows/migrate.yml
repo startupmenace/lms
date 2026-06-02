@@ -1,0 +1,25 @@
+name: DB Migrate
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'database/migration-*.sql'
+      - '.github/workflows/migrate.yml'
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run pending migrations
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT || '3306' }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_DATABASE }}
+        run: |
+          for f in database/migration-*.sql; do
+            echo "→ Running $f ..."
+            mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" < "$f" 2>&1
+            echo "  done."
+          done
