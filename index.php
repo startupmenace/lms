@@ -1,16 +1,7 @@
 <?php
-require_once __DIR__ . '/includes/session.php';
-require_once __DIR__ . '/includes/functions.php';
-
-if (is_logged_in()) {
-    $role = get_user_role();
-    $map = ['student' => 'modules/student/dashboard.php', 'parent' => 'modules/parent/dashboard.php'];
-    header('Location: ' . ($map[$role] ?? 'modules/dashboard/index.php'));
-    exit;
-}
-
-require_once __DIR__ . '/includes/landing-header.php';
-?>
+echo "<h1>Hello World</h1>";
+echo '<a href="modules/auth/login.php">Login</a>';
+exit;
 
 <!-- ====== STICKY NAV ====== -->
 <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 nav-blur border-b border-gray-100/60">
