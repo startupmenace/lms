@@ -1,65 +1,54 @@
 <?php
-/**
- * One-time parent setup — visit this URL once then DELETE this file.
- * Creates the student_parents table, adds parent role + permissions,
- * creates a parent user, and links parent to student ID 1.
- */
+/** Visit once, then DELETE this file. /setup-parent.php?key=setup2026 */
 $secret = $_GET['key'] ?? '';
-if ($secret !== 'setup2026') {
-    http_response_code(403);
-    die('Forbidden');
-}
+if ($secret !== 'setup2026') { http_response_code(403); die('Forbidden'); }
 
 require_once __DIR__ . '/config/database.php';
 
-echo "<pre>\n";
-echo "🔧 Running parent setup...\n\n";
+echo "<pre>\n🔧 Parent setup...\n\n";
 
-// 1. Run migration SQL
+// Fix: ensure role column accepts 'parent'
+$col = db_get_row("SHOW COLUMNS FROM users WHERE Field = 'role'");
+if ($col && strpos($col['Type'], 'enum') !== false) {
+    db_query("ALTER TABLE users MODIFY role VARCHAR(50) NOT NULL DEFAULT 'staff'");
+    echo "✅ Changed users.role from ENUM to VARCHAR\n\n";
+}
+
+// Run migration SQL
 $migration = file_get_contents(__DIR__ . '/database/migration-parent-role.sql');
-$statements = explode(';', $migration);
-$success = 0;
-$errors = 0;
-foreach ($statements as $stmt) {
+foreach (explode(';', $migration) as $stmt) {
     $stmt = trim($stmt);
     if (empty($stmt)) continue;
-    try {
-        db_query($stmt);
-        $success++;
-    } catch (Throwable $e) {
-        echo "⚠️  " . $e->getMessage() . "\n";
-        $errors++;
-    }
+    try { db_query($stmt); } catch (Throwable $e) { echo "⚠️  " . $e->getMessage() . "\n"; }
 }
-echo "✅ Migration: {$success} OK, {$errors} skipped\n\n";
+echo "✅ Migration applied\n\n";
 
-// 2. Create parent user
+// Create parent user
 $email = 'parent@jewelhouse.sc.ke';
 $existing = db_get_row("SELECT id FROM users WHERE email = ?", [$email]);
 if ($existing) {
-    echo "👤 Parent user already exists (ID: {$existing['id']})\n";
-    $parent_id = $existing['id'];
+    echo "👤 Parent exists (ID: {$existing['id']})\n";
+    $pid = $existing['id'];
+    // Re-hash password just in case
+    db_query("UPDATE users SET password = ? WHERE id = ?", [password_hash('password', PASSWORD_BCRYPT), $pid]);
+    echo "✅ Password re-hashed\n";
 } else {
-    $hash = password_hash('password', PASSWORD_BCRYPT);
-    $parent_id = db_insert(
+    $pid = db_insert(
         "INSERT INTO users (username, email, password, full_name, phone, role, is_active) VALUES (?, ?, ?, ?, ?, 'parent', 1)",
-        ['parent', $email, $hash, 'Parent User', '9876500100']
+        ['parent', $email, password_hash('password', PASSWORD_BCRYPT), 'Parent User', '9876500100']
     );
-    echo "✅ Created parent user (ID: {$parent_id})\n";
+    echo "✅ Created parent user (ID: {$pid})\n";
 }
 
-// 3. Link to student ID 1
-$linked = db_get_row("SELECT id FROM student_parents WHERE student_id = 1 AND parent_user_id = ?", [$parent_id]);
+// Link to student 1
+$linked = db_get_row("SELECT id FROM student_parents WHERE student_id = 1 AND parent_user_id = ?", [$pid]);
 if ($linked) {
     echo "👤 Already linked to student ID 1\n";
 } else {
-    db_insert("INSERT INTO student_parents (student_id, parent_user_id) VALUES (1, ?)", [$parent_id]);
-    echo "✅ Linked parent to student ID 1\n";
+    db_insert("INSERT INTO student_parents (student_id, parent_user_id) VALUES (1, ?)", [$pid]);
+    echo "✅ Linked to student ID 1\n";
 }
 
 echo "\n──────────────────────────────\n";
-echo "📧 Email:    parent@jewelhouse.sc.ke\n";
-echo "🔑 Password: password\n";
-echo "──────────────────────────────\n";
-echo "\n⚠️  DELETE THIS FILE after use!\n";
-echo "</pre>";
+echo "📧 parent@jewelhouse.sc.ke\n🔑 password\n──────────────────────────────\n";
+echo "⚠️  DELETE this file after use!\n</pre>";
