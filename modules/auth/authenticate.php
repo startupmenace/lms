@@ -29,4 +29,7 @@ $_SESSION['user_email'] = $user['email'];
 if ($user['role'] === 'student') {
     redirect(BASE_URL . '/modules/student/dashboard.php');
 }
+if ($user['role'] === 'parent') {
+    redirect(BASE_URL . '/modules/parent/dashboard.php');
+}
 redirect(BASE_URL . '/modules/dashboard/index.php');

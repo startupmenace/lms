@@ -4,7 +4,8 @@ require_once __DIR__ . '/includes/functions.php';
 
 if (is_logged_in()) {
     $role = get_user_role();
-    header('Location: ' . ($role === 'student' ? 'modules/student/dashboard.php' : 'modules/dashboard/index.php'));
+    $map = ['student' => 'modules/student/dashboard.php', 'parent' => 'modules/parent/dashboard.php'];
+    header('Location: ' . ($map[$role] ?? 'modules/dashboard/index.php'));
     exit;
 }
 

@@ -34,6 +34,8 @@ function require_role(...$roles) {
     $user_role = $_SESSION['user_role'] ?? null;
     if ($user_role === 'student') {
         header('Location: ' . BASE_URL . '/modules/student/dashboard.php');
+    } elseif ($user_role === 'parent') {
+        header('Location: ' . BASE_URL . '/modules/parent/dashboard.php');
     } else {
         header('Location: ' . BASE_URL . '/modules/dashboard/index.php');
     }
@@ -50,6 +52,7 @@ function has_role(...$roles) {
 function get_user_dashboard() {
     $role = get_user_role();
     if ($role === 'student') return BASE_URL . '/modules/student/dashboard.php';
+    if ($role === 'parent') return BASE_URL . '/modules/parent/dashboard.php';
     return BASE_URL . '/modules/dashboard/index.php';
 }
 
