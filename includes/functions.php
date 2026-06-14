@@ -65,10 +65,15 @@ function get_avatar($name) {
 }
 
 function ensure_upload_dir($subdir = 'students') {
-    $dir = __DIR__ . '/../uploads/' . $subdir;
-    if (!is_dir($dir)) {
-        mkdir($dir, 0755, true);
+    $base = __DIR__ . '/../uploads';
+    if (!is_dir($base)) {
+        mkdir($base, 0777, true);
     }
+    $dir = $base . '/' . $subdir;
+    if (!is_dir($dir)) {
+        mkdir($dir, 0777, true);
+    }
+    chmod($dir, 0777);
     return $dir;
 }
 
