@@ -5,7 +5,11 @@ require_role('admin', 'teacher');
 
 $page_title = 'Attendance Management';
 
-$classes = db_get_all("SELECT * FROM classes WHERE is_active = 1 ORDER BY name");
+if (has_role('admin')) {
+    $classes = db_get_all("SELECT * FROM classes WHERE is_active = 1 ORDER BY name");
+} else {
+    $classes = db_get_all("SELECT c.* FROM classes c JOIN class_teachers ct ON c.id = ct.class_id WHERE ct.teacher_id = ? AND c.is_active = 1 GROUP BY c.id ORDER BY c.name", [get_user_id()]);
+}
 $class_id = (int)($_GET['class_id'] ?? 0);
 $date = $_GET['date'] ?? date('Y-m-d');
 $students = [];
