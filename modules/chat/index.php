@@ -164,9 +164,9 @@ if ($active_group) {
     db_query("UPDATE chat_messages SET is_read=1 WHERE sender_id=? AND receiver_id=?", [$active_dm, $user_id]);
 }
 
-// For student header vs admin/teacher header
-$is_student = ($user_role === 'student');
-include __DIR__ . '/../../includes/' . ($is_student ? 'student-header.php' : 'header.php');
+// For role-based header
+$header_map = ['student' => 'student-header.php', 'parent' => 'parent-header.php'];
+include __DIR__ . '/../../includes/' . ($header_map[$user_role] ?? 'header.php');
 ?>
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/chat.css">
 
@@ -518,4 +518,7 @@ include __DIR__ . '/../../includes/' . ($is_student ? 'student-header.php' : 'he
 })();
 </script>
 <?php endif; ?>
-<?php include __DIR__ . '/../../includes/footer.php'; ?>
+<?php
+$footer_map = ['student' => 'student-footer.php', 'parent' => 'parent-footer.php'];
+include __DIR__ . '/../../includes/' . ($footer_map[$user_role] ?? 'footer.php');
+?>
