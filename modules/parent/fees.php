@@ -67,6 +67,7 @@ include __DIR__ . '/../../includes/parent-header.php';
                     <th class="text-right py-3 px-4 font-medium text-gray-500">Amount</th>
                     <th class="text-right py-3 px-4 font-medium text-gray-500">Paid</th>
                     <th class="text-center py-3 px-4 font-medium text-gray-500">Status</th>
+                    <th class="text-center py-3 px-4 font-medium text-gray-500">Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -83,6 +84,15 @@ include __DIR__ . '/../../includes/parent-header.php';
                         <span class="text-xs px-2 py-1 rounded-full <?= $pct >= 100 ? 'bg-green-100 text-green-700' : ($pct > 0 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700') ?>">
                             <?= $pct >= 100 ? 'Paid' : ($pct > 0 ? $pct . '%' : 'Unpaid') ?>
                         </span>
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <?php if ($fee['due_amount'] > 0): ?>
+                        <a href="pay-fees.php?invoice=<?= urlencode($fee['invoice_no']) ?>&child_id=<?= $child_id ?>" class="bg-teal-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-teal-700 transition inline-flex items-center gap-1">
+                            <i class="fas fa-credit-card"></i> Pay Now
+                        </a>
+                        <?php else: ?>
+                        <span class="text-xs font-semibold text-green-600"><i class="fas fa-check-circle"></i> Paid</span>
+                        <?php endif; ?>
                     </td>
                 </tr>
                 <?php endforeach; ?>
