@@ -89,6 +89,15 @@ function upload_url($filename, $subdir = 'students') {
     return BASE_URL . '/uploads/serve.php?dir=' . $subdir . '&file=' . rawurlencode($filename);
 }
 
+function user_avatar_html($user, $size = 'w-8 h-8', $text_size = 'text-sm') {
+    if (!empty($user['avatar'])) {
+        $src = upload_url($user['avatar'], 'avatars');
+        return '<img src="' . $src . '" alt="Avatar" class="' . $size . ' rounded-full object-cover">';
+    }
+    $initial = get_avatar($user['full_name'] ?? 'U');
+    return '<div class="' . $size . ' rounded-full bg-teal-100 flex items-center justify-center ' . $text_size . ' font-bold text-teal-700">' . $initial . '</div>';
+}
+
 function student_avatar_html($student, $size = 'w-20 h-20', $text_size = 'text-3xl') {
     if (!empty($student['profile_image'])) {
         $src = upload_url($student['profile_image'], 'students');

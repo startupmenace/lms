@@ -20,6 +20,33 @@ if ($role === "admin" || $role === "teacher") {
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $action = $_POST["action"] ?? "";
 
+    if ($action === "update_avatar") {
+        if (!empty($_FILES['avatar']['name'])) {
+            $ext = strtolower(pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION));
+            $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+            if (in_array($ext, $allowed)) {
+                $filename = 'user_' . $user_id . '_' . time() . '.' . $ext;
+                $dest = ensure_upload_dir('avatars') . '/' . $filename;
+                if (move_uploaded_file($_FILES['avatar']['tmp_name'], $dest)) {
+                    if ($user['avatar']) {
+                        $old = get_upload_base() . '/avatars/' . $user['avatar'];
+                        if (file_exists($old)) unlink($old);
+                    }
+                    db_query("UPDATE users SET avatar=? WHERE id=?", [$filename, $user_id]);
+                    $user['avatar'] = $filename;
+                    set_flash("avatar_success", "Avatar updated.");
+                } else {
+                    set_flash("avatar_error", "Failed to upload avatar.");
+                }
+            } else {
+                set_flash("avatar_error", "Invalid image format. Allowed: jpg, jpeg, png, webp, gif");
+            }
+        } else {
+            set_flash("avatar_error", "No file selected.");
+        }
+        redirect("index.php");
+    }
+
     if ($action === "update_profile") {
         $full_name = trim($_POST["full_name"] ?? $user["full_name"]);
         $email = trim($_POST["email"] ?? $user["email"]);
@@ -106,7 +133,11 @@ include $header_file;
         <div class="bg-gradient-to-r from-teal-500 to-teal-700 px-6 py-8">
             <div class="flex items-center gap-5">
                 <div class="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold text-white ring-4 ring-white/30">
-                    <?= get_avatar($user["full_name"]) ?>
+                    <?php if (!empty($user['avatar'])): ?>
+                        <img src="<?= upload_url($user['avatar'], 'avatars') ?>" class="w-16 h-16 rounded-full object-cover ring-4 ring-white/30">
+                    <?php else: ?>
+                        <?= get_avatar($user["full_name"]) ?>
+                    <?php endif; ?>
                 </div>
                 <div class="text-white">
                     <h2 class="text-xl font-bold"><?= sanitize($user["full_name"] ?? "User") ?></h2>
@@ -115,6 +146,19 @@ include $header_file;
                 </div>
             </div>
         </div>
+        <div class="px-5 py-3 bg-gray-50 border-t border-gray-200 flex items-center gap-3">
+            <form method="post" enctype="multipart/form-data" class="flex items-center gap-3 flex-1">
+                <input type="hidden" name="action" value="update_avatar">
+                <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp,image/gif" class="text-sm text-gray-500 flex-1 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
+                <button type="submit" class="bg-teal-600 text-white px-4 py-1.5 rounded-lg text-xs font-medium hover:bg-teal-700 transition">Upload</button>
+            </form>
+        </div>
+        <?php $avatar_success = get_flash('avatar_success'); if ($avatar_success): ?>
+            <div class="px-5 pb-3"><div class="bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-lg text-sm flex items-center gap-2"><i class="fas fa-check-circle"></i> <?= $avatar_success ?></div></div>
+        <?php endif; ?>
+        <?php $avatar_error = get_flash('avatar_error'); if ($avatar_error): ?>
+            <div class="px-5 pb-3"><div class="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm flex items-center gap-2"><?= $avatar_error ?></div></div>
+        <?php endif; ?>
     </div>
 
     <!-- Edit Personal Info -->

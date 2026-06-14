@@ -105,9 +105,10 @@ $page_title = $page_title ?? 'Parent Portal';
                 </div>
                 <div class="relative" id="user-menu-container">
                     <button id="user-menu-btn" class="flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-500 rounded-lg" aria-label="User menu">
-                        <div class="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center text-sm font-bold text-teal-700">
-                            <?= get_avatar(get_user_name()) ?>
-                        </div>
+                        <?php
+                        $current_user = db_get_row("SELECT * FROM users WHERE id=?", [get_user_id()]);
+                        echo user_avatar_html($current_user ?? ['avatar' => null, 'full_name' => get_user_name()]);
+                        ?>
                         <span class="text-sm font-semibold text-gray-800 hidden sm:inline"><?= get_user_name() ?></span>
                         <i class="fas fa-chevron-down text-[10px] text-gray-400 hidden sm:inline"></i>
                     </button>
