@@ -18,6 +18,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sid = !empty($_POST['subject_id']) ? (int)$_POST['subject_id'] : null;
         $role = $_POST['role'] ?? 'teacher';
 
+        if (!has_role('admin') && $tid === get_user_id()) {
+            set_flash('error', 'You cannot assign yourself to a class.');
+            redirect("?id=$cid&tab=teachers");
+        }
         $params = [$cid, $tid];
         if ($sid) {
             $params[] = $sid;

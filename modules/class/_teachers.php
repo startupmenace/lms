@@ -17,7 +17,7 @@ $class_teacher = db_get_row("SELECT u.full_name, u.email FROM class_teachers ct 
     </div>
 </div>
 
-<?php if (!empty($all_teachers)): ?>
+<?php if (!empty($all_teachers) && has_role('admin')): ?>
 <form method="post" class="flex items-end gap-3 mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
     <input type="hidden" name="action" value="assign_teacher">
     <input type="hidden" name="class_id" value="<?= $class_id ?>">
@@ -78,12 +78,14 @@ $class_teacher = db_get_row("SELECT u.full_name, u.email FROM class_teachers ct 
                     <?php endif; ?>
                 </td>
                 <td class="py-2 text-right">
+                    <?php if (has_role('admin')): ?>
                     <form method="post" class="inline" onsubmit="return confirm('Remove this teacher?')">
                         <input type="hidden" name="action" value="remove_teacher">
                         <input type="hidden" name="id" value="<?= $t['id'] ?>">
                         <input type="hidden" name="class_id" value="<?= $class_id ?>">
                         <button type="submit" class="text-gray-300 hover:text-red-500 transition"><i class="fas fa-times text-xs"></i></button>
                     </form>
+                    <?php endif; ?>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -92,7 +94,7 @@ $class_teacher = db_get_row("SELECT u.full_name, u.email FROM class_teachers ct 
     </table>
 </div>
 
-<?php if (!empty($all_teachers)): ?>
+<?php if (!empty($all_teachers) && has_role('admin')): ?>
 <div class="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
     <h4 class="font-bold text-gray-900 text-xs mb-2">Set Class Teacher</h4>
     <form method="post" class="flex items-end gap-3">

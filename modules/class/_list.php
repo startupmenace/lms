@@ -1,8 +1,16 @@
 <?php
-$classes = db_get_all("SELECT c.*,
-    (SELECT COUNT(*) FROM students WHERE class_id=c.id) as student_count,
-    (SELECT u.full_name FROM class_teachers ct JOIN users u ON ct.teacher_id=u.id WHERE ct.class_id=c.id AND ct.role='class_teacher' LIMIT 1) as class_teacher_name
-    FROM classes c WHERE c.is_active=1 ORDER BY c.name");
+if (has_role('admin')) {
+    $classes = db_get_all("SELECT c.*,
+        (SELECT COUNT(*) FROM students WHERE class_id=c.id) as student_count,
+        (SELECT u.full_name FROM class_teachers ct JOIN users u ON ct.teacher_id=u.id WHERE ct.class_id=c.id AND ct.role='class_teacher' LIMIT 1) as class_teacher_name
+        FROM classes c WHERE c.is_active=1 ORDER BY c.name");
+} else {
+    $classes = db_get_all("SELECT c.*,
+        (SELECT COUNT(*) FROM students WHERE class_id=c.id) as student_count,
+        (SELECT u.full_name FROM class_teachers ct JOIN users u ON ct.teacher_id=u.id WHERE ct.class_id=c.id AND ct.role='class_teacher' LIMIT 1) as class_teacher_name
+        FROM classes c JOIN class_teachers ct ON c.id = ct.class_id
+        WHERE ct.teacher_id = ? AND c.is_active = 1 GROUP BY c.id ORDER BY c.name", [get_user_id()]);
+}
 ?>
 <div class="flex items-center justify-between mb-6">
     <div>

@@ -18,6 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_subjects'])) {
     <p class="text-sm text-gray-500"><?= count($cs_ids) ?> subject(s) assigned to this class</p>
 </div>
 
+<?php if (has_role('admin')): ?>
 <form method="post">
     <input type="hidden" name="save_subjects" value="1">
     <input type="hidden" name="class_id" value="<?= $class_id ?>">
@@ -33,3 +34,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_subjects'])) {
         <button type="submit" class="bg-teal-600 text-white px-6 py-2 rounded-lg text-xs font-medium hover:bg-teal-700 transition">Save Subjects</button>
     </div>
 </form>
+<?php endif; ?>
