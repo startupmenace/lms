@@ -21,7 +21,6 @@ $attendance_pct = $total_days > 0 ? round(($present_days / $total_days) * 100, 1
 $upcoming_tests = db_get_all("SELECT t.*, s.name as subject_name FROM tests t LEFT JOIN subjects s ON t.subject_id = s.id WHERE t.class_id = ? AND t.is_active = 1 ORDER BY t.created_at DESC LIMIT 5", [$student['class_id'] ?? 0]);
 $recent_submissions = db_get_all("SELECT ts.*, t.title as test_title, t.total_marks FROM test_submissions ts LEFT JOIN tests t ON ts.test_id = t.id WHERE ts.student_id = ? ORDER BY ts.submitted_at DESC LIMIT 5", [$student_id]);
 $notices = db_get_all("SELECT * FROM notices WHERE (target_audience IN ('all','student') OR class_id = ?) AND is_active = 1 ORDER BY created_at DESC LIMIT 4", [$student['class_id'] ?? 0]);
-$fees = db_get_all("SELECT t.*, fs.name as structure_name FROM transactions t LEFT JOIN fee_structures fs ON t.fee_structure_id = fs.id WHERE t.student_id = ? ORDER BY t.created_at DESC LIMIT 4", [$student_id]);
 
 include __DIR__ . '/../../includes/student-header.php';
 ?>
@@ -144,47 +143,8 @@ include __DIR__ . '/../../includes/student-header.php';
     <div class="bg-white rounded-xl border border-gray-200 p-6">
         <div class="flex items-center justify-between mb-4">
             <h3 class="font-semibold text-gray-900"><i class="fas fa-wallet text-coral-600 mr-2"></i>Fee Status</h3>
-            <a href="fees.php" class="text-sm text-teal-600 hover:underline">View All</a>
         </div>
-        <?php
-        $total_fee_billed = array_sum(array_column($fees, 'total_amount'));
-        $total_fee_paid = array_sum(array_column($fees, 'paid_amount'));
-        $fee_pct = $total_fee_billed > 0 ? round($total_fee_paid / $total_fee_billed * 100) : 0;
-        ?>
-        <?php if (empty($fees)): ?>
-        <p class="text-sm text-gray-400 text-center py-6">No fee records</p>
-        <?php else: ?>
-        <?php if ($total_fee_billed > 0): ?>
-        <div class="mb-4 p-3 bg-gray-50 rounded-lg">
-            <div class="flex items-center justify-between text-sm mb-1.5">
-                <span class="text-gray-600 font-medium">Overall Payment</span>
-                <span class="font-bold <?= $fee_pct >= 100 ? 'text-green-600' : ($fee_pct >= 50 ? 'text-amber-600' : 'text-red-600') ?>"><?= $fee_pct ?>%</span>
-            </div>
-            <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                <div class="h-full rounded-full <?= $fee_pct >= 100 ? 'bg-green-500' : ($fee_pct >= 50 ? 'bg-amber-500' : 'bg-red-500') ?>" style="width: <?= min($fee_pct, 100) ?>%"></div>
-            </div>
-        </div>
-        <?php endif; ?>
-        <div class="space-y-2">
-            <?php foreach ($fees as $fee):
-                $pct = $fee['total_amount'] > 0 ? round($fee['paid_amount'] / $fee['total_amount'] * 100) : 0;
-                $bar_color = $pct >= 100 ? 'bg-green-500' : ($pct >= 50 ? 'bg-amber-500' : 'bg-red-500');
-            ?>
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div class="min-w-0 flex-1">
-                    <p class="text-sm font-medium text-gray-900 truncate"><?= sanitize($fee['structure_name'] ?? 'Fee') ?></p>
-                    <p class="text-xs text-gray-500">#<?= sanitize($fee['invoice_no']) ?></p>
-                </div>
-                <div class="flex items-center gap-3 ml-3">
-                    <div class="w-16 bg-gray-200 rounded-full h-2 hidden sm:block">
-                        <div class="h-full rounded-full <?= $bar_color ?>" style="width: <?= min($pct, 100) ?>%"></div>
-                    </div>
-                    <span class="text-xs font-bold <?= $pct >= 100 ? 'text-green-600' : ($pct >= 50 ? 'text-amber-600' : 'text-red-600') ?>"><?= $pct ?>%</span>
-                </div>
-            </div>
-            <?php endforeach; ?>
-        </div>
-        <?php endif; ?>
+        <p class="text-sm text-gray-400 text-center py-6">Fee management is handled by your parent/guardian. Please contact them for any fee-related inquiries.</p>
     </div>
 </div>
 
