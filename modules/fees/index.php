@@ -44,9 +44,12 @@ include __DIR__ . '/../../includes/header.php';
     ?>
     <div class="flex items-center justify-between mb-6">
         <p class="text-sm text-gray-500"><?= count($structures) ?> fee structures</p>
-        <a href="create-structure.php" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-700 transition flex items-center gap-2">
-            <i class="fas fa-plus"></i> Create Fee Structure
-        </a>
+            <a href="create-structure.php" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-700 transition flex items-center gap-2">
+                <i class="fas fa-plus"></i> Create Fee Structure
+            </a>
+            <a href="generate-bills.php" class="bg-amber-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-amber-600 transition flex items-center gap-2">
+                <i class="fas fa-file-invoice"></i> Generate Bills
+            </a>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <?php if (empty($structures)): ?>
@@ -81,6 +84,12 @@ include __DIR__ . '/../../includes/header.php';
         (SELECT COALESCE(SUM(due_amount), 0) FROM transactions t JOIN students s ON t.student_id = s.id WHERE s.class_id = c.id) as total_due
         FROM classes c ORDER BY c.name");
     ?>
+    <div class="flex items-center justify-between mb-6">
+        <p class="text-sm text-gray-500">Fee collection overview by class</p>
+        <a href="generate-bills.php" class="bg-amber-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-amber-600 transition flex items-center gap-2">
+            <i class="fas fa-file-invoice"></i> Generate Bills
+        </a>
+    </div>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <?php if (empty($classes_list)): ?>
         <div class="col-span-full bg-white rounded-xl border border-gray-200 p-12 text-center">
