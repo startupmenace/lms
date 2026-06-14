@@ -18,10 +18,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_photo']) && $s
         $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
         if (in_array($ext, $allowed)) {
             $filename = 'student_' . $student['id'] . '_' . time() . '.' . $ext;
-            $dest = __DIR__ . '/../../uploads/students/' . $filename;
+            $dest = ensure_upload_dir('students') . '/' . $filename;
             if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $dest)) {
-                if ($student['profile_image'] && file_exists(__DIR__ . '/../../uploads/students/' . $student['profile_image'])) {
-                    unlink(__DIR__ . '/../../uploads/students/' . $student['profile_image']);
+                $old_path = ensure_upload_dir('students') . '/' . $student['profile_image'];
+                if ($student['profile_image'] && file_exists($old_path)) {
+                    unlink($old_path);
                 }
                 db_query("UPDATE students SET profile_image=? WHERE id=?", [$filename, $student['id']]);
                 $student['profile_image'] = $filename;

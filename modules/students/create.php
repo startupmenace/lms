@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
                 if (in_array($ext, $allowed)) {
                     $filename = 'student_' . $id . '_' . time() . '.' . $ext;
-                    $dest = __DIR__ . '/../../uploads/students/' . $filename;
+                    $dest = ensure_upload_dir('students') . '/' . $filename;
                     if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $dest)) {
                         $profile_image = $filename;
                         db_query("UPDATE students SET profile_image=? WHERE id=?", [$profile_image, $id]);

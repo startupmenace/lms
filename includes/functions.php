@@ -64,6 +64,14 @@ function get_avatar($name) {
     return substr($initials, 0, 2);
 }
 
+function ensure_upload_dir($subdir = 'students') {
+    $dir = __DIR__ . '/../uploads/' . $subdir;
+    if (!is_dir($dir)) {
+        mkdir($dir, 0755, true);
+    }
+    return $dir;
+}
+
 function student_avatar_html($student, $size = 'w-20 h-20', $text_size = 'text-3xl') {
     if (!empty($student['profile_image'])) {
         $src = BASE_URL . '/uploads/students/' . $student['profile_image'];
