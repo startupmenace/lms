@@ -80,7 +80,14 @@ include __DIR__ . '/../../includes/header.php';
             <?php foreach ($students as $s): ?>
             <tr class="border-b border-gray-100 hover:bg-gray-50">
                 <td class="py-3 px-4 font-medium text-teal-600"><?= sanitize($s['enrollment_id']) ?></td>
-                <td class="py-3 px-4"><?= sanitize($s['parent_name'] ?? 'N/A') ?></td>
+                <td class="py-3 px-4 flex items-center gap-2">
+                    <?php if (!empty($s['profile_image'])): ?>
+                        <img src="<?= BASE_URL ?>/uploads/students/<?= $s['profile_image'] ?>" class="w-7 h-7 rounded-full object-cover">
+                    <?php else: ?>
+                        <span class="w-7 h-7 rounded-full bg-teal-100 flex items-center justify-center text-xs font-bold text-teal-700"><?= get_avatar($s['parent_name'] ?? 'S') ?></span>
+                    <?php endif; ?>
+                    <?= sanitize($s['parent_name'] ?? 'N/A') ?>
+                </td>
                 <td class="py-3 px-4"><span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded"><?= sanitize($s['class_name'] ?? 'N/A') ?></span></td>
                 <td class="py-3 px-4"><?= sanitize($s['parent_name'] ?? 'N/A') ?></td>
                 <td class="py-3 px-4"><?= sanitize($s['parent_phone'] ?? 'N/A') ?></td>

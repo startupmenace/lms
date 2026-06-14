@@ -19,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $state = sanitize($_POST['state'] ?? '');
     $guardian_name = sanitize($_POST['guardian_name'] ?? '');
     $guardian_phone = sanitize($_POST['guardian_phone'] ?? '');
+    $disabilities = sanitize($_POST['disabilities'] ?? '');
 
     if (empty($class_id) || empty($parent_name)) {
         set_flash('error', 'Please fill in required fields.');
@@ -27,11 +28,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $admission_date = date('Y-m-d');
 
         $id = db_insert(
-            "INSERT INTO students (class_id, enrollment_id, admission_date, date_of_birth, gender, blood_group, address, city, state, parent_name, parent_phone, parent_email, guardian_name, guardian_phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [$class_id, $enrollment_id, $admission_date, $date_of_birth, $gender, $blood_group, $address, $city, $state, $parent_name, $parent_phone, $parent_email, $guardian_name, $guardian_phone]
+            "INSERT INTO students (class_id, enrollment_id, admission_date, date_of_birth, gender, blood_group, address, city, state, parent_name, parent_phone, parent_email, guardian_name, guardian_phone, disabilities) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [$class_id, $enrollment_id, $admission_date, $date_of_birth, $gender, $blood_group, $address, $city, $state, $parent_name, $parent_phone, $parent_email, $guardian_name, $guardian_phone, $disabilities]
         );
 
         if ($id) {
+            $profile_image = '';
+
+            if (!empty($_FILES['profile_image']['name'])) {
+                $ext = strtolower(pathinfo($_FILES['profile_image']['name'], PATHINFO_EXTENSION));
+                $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+                if (in_array($ext, $allowed)) {
+                    $filename = 'student_' . $id . '_' . time() . '.' . $ext;
+                    $dest = __DIR__ . '/../../uploads/students/' . $filename;
+                    if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $dest)) {
+                        $profile_image = $filename;
+                        db_query("UPDATE students SET profile_image=? WHERE id=?", [$profile_image, $id]);
+                    }
+                }
+            }
+
             set_flash('success', 'Student added successfully! Enrollment ID: ' . $enrollment_id);
             redirect('view.php?id=' . $id);
         } else {
@@ -51,7 +67,7 @@ include __DIR__ . '/../../includes/header.php';
             <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4"><?= get_flash('error') ?></div>
         <?php endif; ?>
 
-        <form method="POST" class="space-y-6">
+        <form method="POST" enctype="multipart/form-data" class="space-y-6">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Class <span class="text-red-500">*</span></label>
                 <select name="class_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
@@ -95,6 +111,12 @@ include __DIR__ . '/../../includes/header.php';
             </div>
 
             <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Profile Photo (optional)</label>
+                <input type="file" name="profile_image" accept="image/jpeg,image/png,image/webp,image/gif" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
+                <p class="text-xs text-gray-400 mt-1">JPG, PNG, WebP, or GIF. Max 5MB. Initials shown if skipped.</p>
+            </div>
+
+            <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
                 <textarea name="address" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none"></textarea>
             </div>
@@ -122,6 +144,14 @@ include __DIR__ . '/../../includes/header.php';
                     <label class="block text-sm font-medium text-gray-700 mb-1">Guardian Phone</label>
                     <input type="text" name="guardian_phone" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
                 </div>
+            </div>
+
+            <hr class="border-gray-200">
+
+            <h4 class="font-medium text-gray-900">Medical Information</h4>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Disabilities / Medical Conditions</label>
+                <textarea name="disabilities" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none" placeholder="e.g. Asthma, ADHD, visual impairment, etc."></textarea>
             </div>
 
             <div class="flex gap-3 pt-4">

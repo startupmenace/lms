@@ -64,6 +64,15 @@ function get_avatar($name) {
     return substr($initials, 0, 2);
 }
 
+function student_avatar_html($student, $size = 'w-20 h-20', $text_size = 'text-3xl') {
+    if (!empty($student['profile_image'])) {
+        $src = BASE_URL . '/uploads/students/' . $student['profile_image'];
+        return '<img src="' . $src . '" alt="Photo" class="' . $size . ' rounded-full object-cover">';
+    }
+    $initial = get_avatar($student['parent_name'] ?? 'S');
+    return '<div class="' . $size . ' rounded-full bg-white/20 flex items-center justify-center ' . $text_size . ' font-bold text-white">' . $initial . '</div>';
+}
+
 function paginate($total, $per_page, $current_page) {
     $total_pages = ceil($total / $per_page);
     return [

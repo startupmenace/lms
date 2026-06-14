@@ -26,9 +26,7 @@ include __DIR__ . '/../../includes/header.php';
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
         <div class="bg-gradient-to-r from-teal-500 to-coral-600 px-6 py-8">
             <div class="flex items-center gap-6">
-                <div class="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-3xl font-bold text-white">
-                    <?= get_avatar($student['parent_name'] ?? 'S') ?>
-                </div>
+                <?= student_avatar_html($student) ?>
                 <div class="text-white">
                     <h2 class="text-2xl font-bold"><?= sanitize($student['parent_name']) ?></h2>
                     <p class="text-white/80"><?= sanitize($student['class_name'] ?? 'Unassigned') ?></p>
@@ -62,6 +60,10 @@ include __DIR__ . '/../../includes/header.php';
                 <div>
                     <label class="text-xs text-gray-400 uppercase tracking-wider">Blood Group</label>
                     <p class="text-gray-900 font-medium mt-1"><?= sanitize($student['blood_group'] ?? 'N/A') ?></p>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 uppercase tracking-wider">Disabilities / Medical Conditions</label>
+                    <p class="text-gray-900 font-medium mt-1"><?= !empty($student['disabilities']) ? nl2br(sanitize($student['disabilities'])) : 'None' ?></p>
                 </div>
             </div>
         </div>
