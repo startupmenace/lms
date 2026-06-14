@@ -41,9 +41,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $filename = 'student_' . $id . '_' . time() . '.' . $ext;
                 $dest = ensure_upload_dir('students') . '/' . $filename;
                 if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $dest)) {
-                    $old_path = ensure_upload_dir('students') . '/' . $student['profile_image'];
-                    if ($student['profile_image'] && file_exists($old_path)) {
-                        unlink($old_path);
+                    if ($student['profile_image']) {
+                        $old_path = get_upload_base() . '/students/' . $student['profile_image'];
+                        if (file_exists($old_path)) unlink($old_path);
                     }
                     $profile_image = $filename;
                 }

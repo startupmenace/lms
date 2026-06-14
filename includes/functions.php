@@ -64,22 +64,34 @@ function get_avatar($name) {
     return substr($initials, 0, 2);
 }
 
+function get_upload_base() {
+    $default = __DIR__ . '/../uploads';
+    if (is_dir($default) && is_writable($default)) {
+        return $default;
+    }
+    $tmp = sys_get_temp_dir() . '/ziada_uploads';
+    if (!is_dir($tmp)) mkdir($tmp, 0777, true);
+    return $tmp;
+}
+
 function ensure_upload_dir($subdir = 'students') {
-    $base = __DIR__ . '/../uploads';
-    if (!is_dir($base)) {
-        mkdir($base, 0777, true);
-    }
+    $base = get_upload_base();
     $dir = $base . '/' . $subdir;
-    if (!is_dir($dir)) {
-        mkdir($dir, 0777, true);
-    }
-    chmod($dir, 0777);
+    if (!is_dir($dir)) mkdir($dir, 0777, true);
     return $dir;
+}
+
+function upload_url($filename, $subdir = 'students') {
+    $default = __DIR__ . '/../uploads';
+    if (is_dir($default) && is_writable($default)) {
+        return BASE_URL . '/uploads/' . $subdir . '/' . $filename;
+    }
+    return BASE_URL . '/uploads/serve.php?dir=' . $subdir . '&file=' . rawurlencode($filename);
 }
 
 function student_avatar_html($student, $size = 'w-20 h-20', $text_size = 'text-3xl') {
     if (!empty($student['profile_image'])) {
-        $src = BASE_URL . '/uploads/students/' . $student['profile_image'];
+        $src = upload_url($student['profile_image'], 'students');
         return '<img src="' . $src . '" alt="Photo" class="' . $size . ' rounded-full object-cover">';
     }
     $initial = get_avatar($student['parent_name'] ?? 'S');
