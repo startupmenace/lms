@@ -35,9 +35,7 @@ include __DIR__ . '/../../includes/parent-header.php';
             <div class="flex items-start justify-between gap-4">
                 <div>
                     <h4 class="font-semibold text-gray-900"><?= sanitize($n['title']) ?></h4>
-                    <?php if ($n['description']): ?>
-                    <p class="text-sm text-gray-600 mt-2"><?= nl2br(sanitize($n['description'])) ?></p>
-                    <?php endif; ?>
+                    <p class="text-sm text-gray-600 mt-2"><?= nl2br(sanitize($n['content'] ?? '')) ?></p>
                     <p class="text-xs text-gray-400 mt-3"><i class="far fa-clock mr-1"></i><?= time_ago($n['created_at']) ?></p>
                 </div>
             </div>
