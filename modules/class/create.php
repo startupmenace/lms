@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../../includes/session.php';
 require_once __DIR__ . '/../../includes/functions.php';
 require_module_access('classes');
-require_role('admin', 'teacher');
+require_role('admin');
 
 $page_title = 'Create Class';
 

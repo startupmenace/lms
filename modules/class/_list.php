@@ -11,9 +11,11 @@ $classes = db_get_all("SELECT c.*,
         </h1>
         <p class="text-gray-500 text-sm mt-1"><?= count($classes) ?> active classes</p>
     </div>
+    <?php if (has_role('admin')): ?>
     <a href="create.php" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-700 transition flex items-center gap-2 whitespace-nowrap">
         <i class="fas fa-plus"></i> Add Class
     </a>
+    <?php endif; ?>
 </div>
 
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
