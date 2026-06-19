@@ -16,7 +16,17 @@ if (!$submission) {
 }
 
 $answers = json_decode($submission['answers'], true) ?? [];
+$question_order = json_decode($submission['question_order'], true);
 $questions = db_get_all("SELECT * FROM questions WHERE test_id = ? ORDER BY sort_order, id", [$submission['test_id']]);
+if ($question_order) {
+    $ordered = [];
+    foreach ($question_order as $qid) {
+        foreach ($questions as $q) {
+            if ((string)$q['id'] === (string)$qid) { $ordered[] = $q; break; }
+        }
+    }
+    $questions = $ordered;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $total_obtained = 0;

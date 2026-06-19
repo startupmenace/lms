@@ -21,9 +21,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($title) || !$class_id) {
         set_flash('error', 'Please fill in required fields.');
     } else {
+        $shuffle = isset($_POST['shuffle_questions']) ? 1 : 0;
         $test_id = db_insert(
-            "INSERT INTO tests (title, class_id, subject_id, total_marks, difficulty, mcq_count, subjective_count, duration_minutes, instructions, created_by) VALUES (?, ?, $subject_id, ?, ?, ?, ?, ?, ?, ?)",
-            [$title, $class_id, $total_marks, $difficulty, $mcq_count, $subjective_count, $duration_minutes, $instructions, get_user_id()]
+            "INSERT INTO tests (title, class_id, subject_id, total_marks, difficulty, mcq_count, subjective_count, duration_minutes, instructions, shuffle_questions, created_by) VALUES (?, ?, $subject_id, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [$title, $class_id, $total_marks, $difficulty, $mcq_count, $subjective_count, $duration_minutes, $instructions, $shuffle, get_user_id()]
         );
         if ($test_id) {
             set_flash('success', 'Test created! Now add questions.');
@@ -106,6 +107,11 @@ include __DIR__ . '/../../includes/header.php';
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Instructions</label>
                 <textarea name="instructions" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none" placeholder="Instructions for students..."></textarea>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <input type="checkbox" name="shuffle_questions" id="shuffle_questions" value="1" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                <label for="shuffle_questions" class="text-sm text-gray-700">Shuffle questions for each student <span class="text-xs text-gray-400">(each student sees questions in random order)</span></label>
             </div>
 
             <div class="flex gap-3">

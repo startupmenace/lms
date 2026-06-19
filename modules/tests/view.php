@@ -27,6 +27,9 @@ include __DIR__ . '/../../includes/header.php';
                     <span>Total Marks: <?= $test['total_marks'] ?></span>
                     <span>Duration: <?= $test['duration_minutes'] ?> min</span>
                     <span class="px-2 py-0.5 rounded-full text-xs <?= $test['difficulty'] == 'easy' ? 'bg-green-100 text-green-700' : ($test['difficulty'] == 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700') ?>"><?= ucfirst($test['difficulty']) ?></span>
+                    <?php if ($test['shuffle_questions']): ?>
+                    <span class="px-2 py-0.5 rounded-full text-xs bg-purple-100 text-purple-700"><i class="fas fa-random mr-1"></i> Shuffled</span>
+                    <?php endif; ?>
                 </div>
             </div>
             <div>

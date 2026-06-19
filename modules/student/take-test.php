@@ -31,6 +31,19 @@ if ($existing && $existing['status'] === 'resubmitted') {
 }
 
 $questions = db_get_all("SELECT * FROM questions WHERE test_id = ? ORDER BY sort_order, id", [$test_id]);
+$question_order = null;
+if ($test['shuffle_questions']) {
+    $ids = array_column($questions, 'id');
+    shuffle($ids);
+    $question_order = json_encode($ids);
+    $ordered = [];
+    foreach ($ids as $qid) {
+        foreach ($questions as $q) {
+            if ($q['id'] == $qid) { $ordered[] = $q; break; }
+        }
+    }
+    $questions = $ordered;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $answers = [];
@@ -44,8 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    db_insert("INSERT INTO test_submissions (test_id, student_id, answers, total_marks_obtained, status, submitted_at) VALUES (?,?,?,?,'pending',NOW())", [
-        $test_id, $student_id, json_encode($answers), $total_obtained
+    db_insert("INSERT INTO test_submissions (test_id, student_id, answers, question_order, total_marks_obtained, status, submitted_at) VALUES (?,?,?,?,?,'pending',NOW())", [
+        $test_id, $student_id, json_encode($answers), $question_order, $total_obtained
     ]);
 
     set_flash('success', 'Test submitted successfully!');

@@ -39,7 +39,7 @@ include __DIR__ . '/../../includes/student-header.php';
             </div>
             <div class="text-xs text-gray-500 space-y-1">
                 <div><i class="fas fa-book w-4 mr-1"></i> <?= sanitize($t['subject_name'] ?? 'All Subjects') ?></div>
-                <div><i class="fas fa-clock w-4 mr-1"></i> <?= $t['duration_minutes'] ?> minutes | <?= $t['total_marks'] ?> marks</div>
+                <div><i class="fas fa-clock w-4 mr-1"></i> <?= $t['duration_minutes'] ?> minutes | <?= $t['total_marks'] ?> marks<?= $t['shuffle_questions'] ? ' | <i class="fas fa-random text-purple-500 mr-1"></i> Shuffled' : '' ?></div>
             </div>
             <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
                 <?php if ($t['submission_status']): ?>
