@@ -10,6 +10,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = sanitize($_POST['name']);
     $category = sanitize($_POST['category']);
     $section = sanitize($_POST['section'] ?? '');
+    if ($section === 'other') {
+        $section = sanitize($_POST['section_custom'] ?? '');
+    }
     $description = sanitize($_POST['description'] ?? '');
 
     if (empty($name) || empty($category)) {
@@ -71,10 +74,40 @@ include __DIR__ . '/../../includes/header.php';
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Section</label>
-                        <input type="text" name="section" value="<?= sanitize($_POST['section'] ?? '') ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none" placeholder="e.g., A, B, North">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Stream</label>
+                        <select name="section" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none" onchange="toggleStreamInput(this)">
+                            <option value="">— No Stream —</option>
+                            <option value="Alpha" <?= ($_POST['section'] ?? '') === 'Alpha' ? 'selected' : '' ?>>Alpha</option>
+                            <option value="Beta" <?= ($_POST['section'] ?? '') === 'Beta' ? 'selected' : '' ?>>Beta</option>
+                            <option value="Gamma" <?= ($_POST['section'] ?? '') === 'Gamma' ? 'selected' : '' ?>>Gamma</option>
+                            <option value="Delta" <?= ($_POST['section'] ?? '') === 'Delta' ? 'selected' : '' ?>>Delta</option>
+                            <option value="Green" <?= ($_POST['section'] ?? '') === 'Green' ? 'selected' : '' ?>>Green</option>
+                            <option value="Red" <?= ($_POST['section'] ?? '') === 'Red' ? 'selected' : '' ?>>Red</option>
+                            <option value="Blue" <?= ($_POST['section'] ?? '') === 'Blue' ? 'selected' : '' ?>>Blue</option>
+                            <option value="Gold" <?= ($_POST['section'] ?? '') === 'Gold' ? 'selected' : '' ?>>Gold</option>
+                            <option value="A" <?= ($_POST['section'] ?? '') === 'A' ? 'selected' : '' ?>>A</option>
+                            <option value="B" <?= ($_POST['section'] ?? '') === 'B' ? 'selected' : '' ?>>B</option>
+                            <option value="C" <?= ($_POST['section'] ?? '') === 'C' ? 'selected' : '' ?>>C</option>
+                            <option value="other">Other (type below)</option>
+                        </select>
+                        <input type="text" name="section_custom" id="section_custom" value="<?= sanitize($_POST['section_custom'] ?? '') ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none mt-2" placeholder="Custom stream name..." style="display:none">
                     </div>
                 </div>
+                <script>
+                function toggleStreamInput(sel) {
+                    var custom = document.getElementById('section_custom');
+                    if (sel.value === 'other') {
+                        custom.style.display = 'block';
+                        custom.focus();
+                    } else {
+                        custom.style.display = 'none';
+                        custom.value = '';
+                    }
+                }
+                <?php if (isset($_POST['section']) && $_POST['section'] === 'other'): ?>
+                document.addEventListener('DOMContentLoaded', function() { document.getElementById('section_custom').style.display = 'block'; });
+                <?php endif; ?>
+                </script>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>

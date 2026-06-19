@@ -11,7 +11,10 @@ $selected_class = (int)($_GET['class_id'] ?? 0);
 $selected_structure = (int)($_GET['structure_id'] ?? 0);
 $selected_term = $_GET['term'] ?? '';
 $selected_session = $_GET['session'] ?? date('Y') . '-' . (date('Y') + 1);
+$selected_stream = $_GET['stream'] ?? '';
 $preview = $_GET['preview'] ?? 0;
+
+$streams = $selected_class ? db_get_all("SELECT DISTINCT section FROM classes WHERE id=? AND section IS NOT NULL AND section!='' ORDER BY section", [$selected_class]) : [];
 
 $fee_types = [];
 $students = [];
@@ -19,7 +22,13 @@ $students = [];
 if ($selected_class && $selected_structure && $preview) {
     $fee_types = db_get_all("SELECT * FROM fee_types WHERE fee_structure_id = ? ORDER BY is_optional, category", [$selected_structure]);
     $structure = db_get_row("SELECT * FROM fee_structures WHERE id = ?", [$selected_structure]);
-    $students = db_get_all("SELECT s.*, c.name as class_name FROM students s LEFT JOIN classes c ON s.class_id = c.id WHERE s.class_id = ? AND s.is_active = 1 ORDER BY s.parent_name", [$selected_class]);
+    $where = "s.class_id = ? AND s.is_active = 1";
+    $params = [$selected_class];
+    if ($selected_stream) {
+        $where .= " AND c.section = ?";
+        $params[] = $selected_stream;
+    }
+    $students = db_get_all("SELECT s.*, c.name as class_name, c.section as class_section FROM students s LEFT JOIN classes c ON s.class_id = c.id WHERE $where ORDER BY c.section, s.parent_name", $params);
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate'])) {
@@ -143,6 +152,17 @@ include __DIR__ . '/../../includes/header.php';
                 <label class="block text-xs font-medium text-gray-600 mb-1">Session</label>
                 <input type="text" name="session" value="<?= sanitize($selected_session) ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
             </div>
+            <?php if (!empty($streams)): ?>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Stream</label>
+                <select name="stream" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                    <option value="">All Streams</option>
+                    <?php foreach ($streams as $st): ?>
+                    <option value="<?= sanitize($st['section']) ?>" <?= $selected_stream == $st['section'] ? 'selected' : '' ?>><?= sanitize($st['section']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <?php endif; ?>
             <div class="flex items-end">
                 <input type="hidden" name="preview" value="1">
                 <button type="submit" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-700 transition w-full"><i class="fas fa-search mr-1"></i> Preview</button>
@@ -190,6 +210,7 @@ include __DIR__ . '/../../includes/header.php';
                         <tr class="bg-gray-50 border-b border-gray-200">
                             <th class="text-left py-3 px-4 font-medium text-gray-500 w-10"><input type="checkbox" checked disabled></th>
                             <th class="text-left py-3 px-4 font-medium text-gray-500">Student</th>
+                            <th class="text-left py-3 px-4 font-medium text-gray-500">Stream</th>
                             <th class="text-right py-3 px-4 font-medium text-gray-500">Base Fee</th>
                             <th class="py-3 px-4 font-medium text-gray-500" colspan="2">Extra Charges</th>
                             <th class="text-right py-3 px-4 font-medium text-gray-500">Total</th>
@@ -220,8 +241,9 @@ include __DIR__ . '/../../includes/header.php';
                                     </div>
                                 </div>
                             </td>
+                            <td class="py-3 px-4"><?= !empty($s['class_section']) ? '<span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">' . sanitize($s['class_section']) . '</span>' : '—' ?></td>
                             <td class="py-3 px-4 text-right font-medium"><?= format_currency($base_total) ?></td>
-                            <td class="py-3 px-4" colspan="2">
+                            <td class="py-3 px-4" colspan="3">
                                 <?php if ($existing_bill): ?>
                                 <span class="text-xs text-green-600"><i class="fas fa-check-circle"></i> Already billed</span>
                                 <?php else: ?>

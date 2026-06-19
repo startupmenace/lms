@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../includes/functions.php';
 require_role('admin', 'teacher');
 
 $id = (int)($_GET['id'] ?? 0);
-$student = db_get_row("SELECT s.*, c.name as class_name FROM students s LEFT JOIN classes c ON s.class_id = c.id WHERE s.id = ?", [$id]);
+$student = db_get_row("SELECT s.*, c.name as class_name, c.section as class_section FROM students s LEFT JOIN classes c ON s.class_id = c.id WHERE s.id = ?", [$id]);
 
 if (!$student) {
     set_flash('error', 'Student not found.');
@@ -46,8 +46,8 @@ include __DIR__ . '/../../includes/header.php';
                     <p class="text-gray-900 font-medium mt-1"><?= $student['admission_date'] ? format_date($student['admission_date']) : 'N/A' ?></p>
                 </div>
                 <div>
-                    <label class="text-xs text-gray-400 uppercase tracking-wider">Class</label>
-                    <p class="text-gray-900 font-medium mt-1"><?= sanitize($student['class_name'] ?? 'N/A') ?></p>
+                    <label class="text-xs text-gray-400 uppercase tracking-wider">Class / Stream</label>
+                    <p class="text-gray-900 font-medium mt-1"><?= sanitize($student['class_name'] ?? 'N/A') ?><?= !empty($student['class_section']) ? ' · ' . sanitize($student['class_section']) : '' ?></p>
                 </div>
                 <div>
                     <label class="text-xs text-gray-400 uppercase tracking-wider">Date of Birth</label>
