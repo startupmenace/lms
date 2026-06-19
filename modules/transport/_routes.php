@@ -170,9 +170,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="stop-row flex items-center gap-1.5 bg-white rounded-lg border border-gray-200 px-2.5 py-2" data-idx="<?= $stop['stop_order'] - 1 ?>">
                                 <span class="stop-order w-6 h-6 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-xs flex-shrink-0"><?= $stop['stop_order'] ?></span>
                                 <input type="text" class="stop-name flex-1 min-w-0 border-0 border-b border-gray-200 px-1 py-0.5 text-xs focus:border-teal-500 outline-none bg-transparent" placeholder="Stop name" value="<?= sanitize($stop['name']) ?>">
-                                <input type="text" class="stop-landmark w-16 border-0 border-b border-gray-200 px-1 py-0.5 text-xs focus:border-teal-500 outline-none bg-transparent hidden sm:inline-block" placeholder="Landmark" value="<?= sanitize($stop['landmark'] ?? '') ?>">
-                                <input type="hidden" class="stop-lat" value="<?= $stop['latitude'] ?? '' ?>">
-                                <input type="hidden" class="stop-lng" value="<?= $stop['longitude'] ?? '' ?>">
+                                <input type="text" class="stop-landmark w-14 border-0 border-b border-gray-200 px-1 py-0.5 text-xs focus:border-teal-500 outline-none bg-transparent hidden sm:inline-block" placeholder="Landmark" value="<?= sanitize($stop['landmark'] ?? '') ?>">
+                                <input type="text" class="stop-lat w-16 border-0 border-b border-gray-200 px-1 py-0.5 text-xs focus:border-teal-500 outline-none bg-transparent" placeholder="Latitude" value="<?= $stop['latitude'] ?? '' ?>">
+                                <input type="text" class="stop-lng w-16 border-0 border-b border-gray-200 px-1 py-0.5 text-xs focus:border-teal-500 outline-none bg-transparent" placeholder="Longitude" value="<?= $stop['longitude'] ?? '' ?>">
                                 <button type="button" class="place-btn text-xs px-1.5 py-1 rounded font-medium flex-shrink-0 <?= ($stop['latitude'] && $stop['longitude']) ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700 hover:bg-amber-200' ?>">
                                     <?php if ($stop['latitude'] && $stop['longitude']): ?>
                                     <i class="fas fa-check"></i>
@@ -386,9 +386,9 @@ document.addEventListener('DOMContentLoaded', () => {
         div.innerHTML = `
             <span class="stop-order w-6 h-6 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-xs flex-shrink-0">1</span>
             <input type="text" class="stop-name flex-1 min-w-0 border-0 border-b border-gray-200 px-1 py-0.5 text-xs focus:border-teal-500 outline-none bg-transparent" placeholder="Stop name">
-            <input type="text" class="stop-landmark w-16 border-0 border-b border-gray-200 px-1 py-0.5 text-xs focus:border-teal-500 outline-none bg-transparent hidden sm:inline-block" placeholder="Landmark">
-            <input type="hidden" class="stop-lat" value="">
-            <input type="hidden" class="stop-lng" value="">
+            <input type="text" class="stop-landmark w-14 border-0 border-b border-gray-200 px-1 py-0.5 text-xs focus:border-teal-500 outline-none bg-transparent hidden sm:inline-block" placeholder="Landmark">
+            <input type="text" class="stop-lat w-16 border-0 border-b border-gray-200 px-1 py-0.5 text-xs focus:border-teal-500 outline-none bg-transparent" placeholder="Latitude" value="">
+            <input type="text" class="stop-lng w-16 border-0 border-b border-gray-200 px-1 py-0.5 text-xs focus:border-teal-500 outline-none bg-transparent" placeholder="Longitude" value="">
             <button type="button" class="place-btn text-xs px-1.5 py-1 rounded font-medium flex-shrink-0 bg-gray-100 text-gray-400"><i class="fas fa-map-pin"></i></button>
             <button type="button" class="remove-stop text-red-400 hover:text-red-600 text-xs flex-shrink-0 px-1"><i class="fas fa-times"></i></button>`;
         if (emptyMsg) container.insertBefore(div, emptyMsg);
@@ -436,7 +436,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ---------- INPUT EVENTS ----------
     container.addEventListener('input', (e) => {
-        if (e.target.classList.contains('stop-name')) rebuildMap();
+        if (e.target.classList.contains('stop-name') || e.target.classList.contains('stop-lat') || e.target.classList.contains('stop-lng')) {
+            rebuildMap();
+        }
     });
 
     // ---------- INIT ----------
