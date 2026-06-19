@@ -38,12 +38,14 @@ include __DIR__ . '/../../includes/header.php';
     <div>
         <p class="text-sm text-gray-500"><?= count($students) ?> total students</p>
     </div>
+    <?php if (has_role('admin')): ?>
     <a href="create.php" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-700 transition flex items-center gap-2">
         <i class="fas fa-plus"></i> Add New Student
     </a>
     <a href="import.php" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition flex items-center gap-2">
         <i class="fas fa-file-csv"></i> Import CSV
     </a>
+    <?php endif; ?>
 </div>
 
 <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6">
@@ -82,14 +84,14 @@ include __DIR__ . '/../../includes/header.php';
                 <th class="text-left py-3 px-4 font-medium text-gray-500">Parent Name</th>
                 <th class="text-left py-3 px-4 font-medium text-gray-500">Phone</th>
                 <th class="text-left py-3 px-4 font-medium text-gray-500">Admission Date</th>
-                <th class="text-left py-3 px-4 font-medium text-gray-500">Actions</th>
+                <?php if (has_role('admin')): ?><th class="text-left py-3 px-4 font-medium text-gray-500">Actions</th><?php endif; ?>
             </tr>
         </thead>
         <tbody>
             <?php if (empty($students)): ?>
-            <tr><td colspan="7" class="py-12 text-center text-gray-400">
+            <tr><td colspan="<?= has_role('admin') ? 7 : 6 ?>" class="py-12 text-center text-gray-400">
                 <i class="fas fa-user-graduate text-4xl mb-3 block text-gray-300"></i>
-                No students found. <a href="create.php" class="text-teal-600 hover:underline">Add your first student</a>
+                No students found.<?php if (has_role('admin')): ?> <a href="create.php" class="text-teal-600 hover:underline">Add your first student</a><?php endif; ?>
             </td></tr>
             <?php else: ?>
             <?php foreach ($students as $s): ?>
@@ -107,11 +109,13 @@ include __DIR__ . '/../../includes/header.php';
                 <td class="py-3 px-4"><?= sanitize($s['parent_name'] ?? 'N/A') ?></td>
                 <td class="py-3 px-4"><?= sanitize($s['parent_phone'] ?? 'N/A') ?></td>
                 <td class="py-3 px-4"><?= $s['admission_date'] ? format_date($s['admission_date']) : 'N/A' ?></td>
+                <?php if (has_role('admin')): ?>
                 <td class="py-3 px-4">
                     <a href="view.php?id=<?= $s['id'] ?>" class="text-teal-600 hover:text-teal-800 mr-3" title="View"><i class="fas fa-eye"></i></a>
                     <a href="edit.php?id=<?= $s['id'] ?>" class="text-amber-600 hover:text-amber-800 mr-3" title="Edit"><i class="fas fa-edit"></i></a>
                     <a href="delete.php?id=<?= $s['id'] ?>" class="text-red-600 hover:text-red-800" title="Delete" data-confirm="Delete this student?"><i class="fas fa-trash"></i></a>
                 </td>
+                <?php endif; ?>
             </tr>
             <?php endforeach; ?>
             <?php endif; ?>
