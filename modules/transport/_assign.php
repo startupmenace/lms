@@ -2,6 +2,7 @@
 $selected_route_id = (int)($_GET['route_id'] ?? 0);
 $class_filter = (int)($_GET['class_id'] ?? 0);
 $session_filter = $_GET['session'] ?? date('Y');
+$stream_filter = $_GET['stream'] ?? '';
 
 $routes = db_get_all("SELECT r.*, v.vehicle_number, v.capacity,
     (SELECT COUNT(*) FROM transport_route_students WHERE route_id=r.id AND status='active') as assigned_count
@@ -10,6 +11,7 @@ $routes = db_get_all("SELECT r.*, v.vehicle_number, v.capacity,
     WHERE r.status='active' ORDER BY r.name");
 
 $classes = db_get_all("SELECT * FROM classes WHERE is_active=1 ORDER BY name");
+$streams = $class_filter ? db_get_all("SELECT DISTINCT section FROM classes WHERE id=? AND section IS NOT NULL AND section!='' ORDER BY section", [$class_filter]) : [];
 
 $assigned_student_ids = [];
 $route_capacity = 0;
@@ -22,12 +24,17 @@ if ($selected_route_id) {
 
 $students = [];
 if ($class_filter) {
-    $students = db_get_all("SELECT s.id, s.enrollment_id, s.parent_phone, u.full_name as student_name, c.name as class_name
+    $where = "s.class_id = ? AND s.is_active = 1";
+    $params = [$class_filter];
+    if ($stream_filter) {
+        $where .= " AND c.section = ?";
+        $params[] = $stream_filter;
+    }
+    $students = db_get_all("SELECT s.id, s.enrollment_id, s.parent_phone, s.parent_name as student_name, c.name as class_name, c.section as class_section
         FROM students s
-        JOIN users u ON s.user_id = u.id
         LEFT JOIN classes c ON s.class_id = c.id
-        WHERE s.class_id = ? AND s.is_active = 1
-        ORDER BY u.full_name", [$class_filter]);
+        WHERE $where
+        ORDER BY s.parent_name", $params);
 }
 
 $route_stops = [];
@@ -37,14 +44,13 @@ if ($selected_route_id) {
 
 $assignments = [];
 if ($selected_route_id) {
-    $assignments = db_get_all("SELECT rs.*, u.full_name as student_name, s.enrollment_id, s.parent_phone, c.name as class_name, rs2.name as stop_name
+    $assignments = db_get_all("SELECT rs.*, s.parent_name as student_name, s.enrollment_id, s.parent_phone, c.name as class_name, c.section as class_section, rs2.name as stop_name
         FROM transport_route_students rs
         JOIN students s ON rs.student_id = s.id
-        JOIN users u ON s.user_id = u.id
         LEFT JOIN classes c ON s.class_id = c.id
         LEFT JOIN transport_route_stops rs2 ON rs.stop_id = rs2.id
         WHERE rs.route_id = ? AND rs.status='active'
-        ORDER BY u.name", [$selected_route_id]);
+        ORDER BY c.name, c.section, s.parent_name", [$selected_route_id]);
 }
 ?>
 
@@ -88,10 +94,21 @@ if ($selected_route_id) {
                     <select name="class_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none" onchange="this.form.submit()">
                         <option value="">All Classes</option>
                         <?php foreach ($classes as $c): ?>
-                        <option value="<?= $c['id'] ?>" <?= $class_filter == $c['id'] ? 'selected' : '' ?>><?= sanitize($c['name']) ?></option>
+                        <option value="<?= $c['id'] ?>" <?= $class_filter == $c['id'] ? 'selected' : '' ?>><?= sanitize($c['name']) ?><?= $c['section'] ? ' (' . sanitize($c['section']) . ')' : '' ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
+                <?php if (!empty($streams)): ?>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Stream</label>
+                    <select name="stream" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none" onchange="this.form.submit()">
+                        <option value="">All Streams</option>
+                        <?php foreach ($streams as $st): ?>
+                        <option value="<?= sanitize($st['section']) ?>" <?= $stream_filter == $st['section'] ? 'selected' : '' ?>><?= sanitize($st['section']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <?php endif; ?>
             </form>
 
             <?php if ($selected_route_id && $students): ?>
@@ -177,7 +194,7 @@ if ($selected_route_id) {
                                 <span class="font-medium text-gray-900"><?= sanitize($a['student_name']) ?></span>
                                 <span class="text-xs text-gray-400 ml-1"><?= sanitize($a['enrollment_id']) ?></span>
                             </td>
-                            <td class="py-2 px-2 text-gray-600 hidden sm:table-cell"><?= sanitize($a['class_name'] ?? '—') ?></td>
+                            <td class="py-2 px-2 text-gray-600 hidden sm:table-cell"><?= sanitize($a['class_name'] ?? '—') ?><?= !empty($a['class_section']) ? ' · ' . sanitize($a['class_section']) : '' ?></td>
                             <td class="py-2 px-2 text-gray-600 hidden lg:table-cell text-xs"><?= sanitize($a['parent_phone'] ?? '—') ?></td>
                             <td class="py-2 px-2 text-gray-600 hidden md:table-cell"><?= sanitize($a['stop_name'] ?? '—') ?></td>
                             <td class="py-2 px-2 text-right font-medium"><?= format_currency($a['fee_amount']) ?></td>
