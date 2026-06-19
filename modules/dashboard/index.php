@@ -73,9 +73,11 @@ include __DIR__ . '/../../includes/header.php';
             <p class="text-teal-100 text-sm sm:text-base mt-1"><?= date('l, j F Y') ?> · Here's your school overview</p>
         </div>
         <div class="flex gap-2">
+            <?php if (has_role('admin')): ?>
             <a href="<?= BASE_URL ?>/modules/students/create.php" class="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-white/50">
                 <i class="fas fa-plus-circle"></i> Add Student
             </a>
+            <?php endif; ?>
             <a href="<?= BASE_URL ?>/modules/attendance/index.php" class="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-white/50">
                 <i class="fas fa-calendar-check"></i> Attendance
             </a>
@@ -198,10 +200,12 @@ include __DIR__ . '/../../includes/header.php';
                     <div class="w-9 h-9 rounded-lg bg-rose-100 flex items-center justify-center group-hover:scale-110 transition"><i class="fas fa-video text-rose-600"></i></div>
                     <div><p class="text-sm font-semibold text-gray-900">Live Class</p><p class="text-xs text-gray-500">Start session</p></div>
                 </a>
+                <?php if (has_role('admin')): ?>
                 <a href="<?= BASE_URL ?>/modules/students/create.php" class="flex items-center gap-3 p-3 rounded-xl bg-teal-50 hover:bg-teal-100 border border-teal-100 hover:border-teal-200 transition group focus:outline-none focus:ring-2 focus:ring-teal-400">
                     <div class="w-9 h-9 rounded-lg bg-teal-100 flex items-center justify-center group-hover:scale-110 transition"><i class="fas fa-user-plus text-teal-600"></i></div>
                     <div><p class="text-sm font-semibold text-gray-900">Add Student</p><p class="text-xs text-gray-500">New enrollment</p></div>
                 </a>
+                <?php endif; ?>
             </div>
         </div>
 
