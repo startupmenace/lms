@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../../includes/session.php';
 require_once __DIR__ . '/../../includes/functions.php';
 require_module_access('students');
-require_role('admin', 'teacher');
+require_role('admin');
 
 $page_title = 'Import Students';
 $classes = db_get_all("SELECT * FROM classes WHERE is_active = 1 ORDER BY name");

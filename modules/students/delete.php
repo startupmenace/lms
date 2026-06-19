@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../includes/session.php';
 require_once __DIR__ . '/../../includes/functions.php';
-require_role('admin', 'teacher');
+require_role('admin');
 
 $id = (int)($_GET['id'] ?? 0);
 $student = db_get_row("SELECT * FROM students WHERE id = ?", [$id]);

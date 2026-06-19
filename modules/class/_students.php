@@ -1,7 +1,7 @@
 <?php
 $students = db_get_all("SELECT s.*, u.full_name, u.email, u.phone,
     (SELECT COUNT(*) FROM attendance a WHERE a.student_id=s.id AND a.date=CURDATE() AND a.status='present') as today_present
-    FROM students s JOIN users u ON s.user_id=u.id WHERE s.class_id=? AND s.is_active=1 ORDER BY u.full_name", [$class_id]);
+    FROM students s LEFT JOIN users u ON s.user_id=u.id WHERE s.class_id=? AND s.is_active=1 ORDER BY COALESCE(u.full_name, s.parent_name)", [$class_id]);
 $student_count = count($students);
 ?>
 <div class="flex items-center justify-between mb-4">
@@ -29,10 +29,11 @@ $student_count = count($students);
             <tr class="border-b border-gray-50 hover:bg-gray-50 transition">
                 <td class="py-2.5 pr-3">
                     <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-coral-400 flex items-center justify-center text-white font-bold text-xs"><?= strtoupper(substr($s['full_name'], 0, 1)) ?></div>
+                        <?php $display_name = $s['full_name'] ?? $s['parent_name']; ?>
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-coral-400 flex items-center justify-center text-white font-bold text-xs"><?= strtoupper(substr($display_name, 0, 1)) ?></div>
                         <div>
-                            <p class="font-medium text-gray-900 text-xs"><?= sanitize($s['full_name']) ?></p>
-                            <p class="text-[10px] text-gray-400">ID: <?= $s['id'] ?></p>
+                            <p class="font-medium text-gray-900 text-xs"><?= sanitize($display_name) ?></p>
+                            <p class="text-[10px] text-gray-400"><?= sanitize($s['enrollment_id']) ?></p>
                         </div>
                     </div>
                 </td>
