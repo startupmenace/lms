@@ -37,7 +37,7 @@ include __DIR__ . '/../../includes/header.php';
                 <span class="text-xs px-2 py-1 rounded-full <?= $t['difficulty'] == 'easy' ? 'bg-green-100 text-green-700' : ($t['difficulty'] == 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700') ?>">
                     <?= ucfirst($t['difficulty']) ?>
                 </span>
-                <?php if ($t['shuffle_questions']): ?>
+                <?php if (!empty($t['shuffle_questions'])): ?>
                 <span class="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-700"><i class="fas fa-random mr-1"></i></span>
                 <?php endif; ?>
             </div>

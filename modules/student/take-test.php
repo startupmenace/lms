@@ -32,7 +32,7 @@ if ($existing && $existing['status'] === 'resubmitted') {
 
 $questions = db_get_all("SELECT * FROM questions WHERE test_id = ? ORDER BY sort_order, id", [$test_id]);
 $question_order = null;
-if ($test['shuffle_questions']) {
+if (!empty($test['shuffle_questions'])) {
     $ids = array_column($questions, 'id');
     shuffle($ids);
     $question_order = json_encode($ids);
