@@ -7,6 +7,16 @@ $page_title = 'Chat';
 $user_id = get_user_id();
 $user_role = get_user_role();
 
+// Students can only DM their class teacher or subject teachers
+$allowed_teacher_ids = [];
+if (has_role('student')) {
+    $student_row = db_get_row("SELECT class_id FROM students WHERE user_id=?", [$user_id]);
+    if ($student_row) {
+        $rows = db_get_all("SELECT DISTINCT teacher_id FROM class_teachers WHERE class_id=?", [$student_row['class_id']]);
+        $allowed_teacher_ids = array_column($rows, 'teacher_id');
+    }
+}
+
 $tab = $_GET['tab'] ?? 'chat';
 
 // ─── POST Handlers ───
@@ -32,6 +42,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $receiver_id = (int)($_POST['receiver_id'] ?? 0);
         $message = sanitize($_POST['message'] ?? '');
         if ($receiver_id && $message) {
+            if (has_role('student') && !in_array($receiver_id, $allowed_teacher_ids)) {
+                set_flash('error', 'You can only message your class teacher or subject teachers');
+                redirect('?');
+            }
             db_insert("INSERT INTO chat_messages (sender_id, receiver_id, message) VALUES (?,?,?)", [$user_id, $receiver_id, $message]);
         }
         redirect('?dm=' . $receiver_id);
@@ -145,8 +159,24 @@ $dm_users = db_get_all("SELECT DISTINCT u.id, u.full_name, u.role,
     )
     ORDER BY last_time DESC", [$user_id, $user_id, $user_id, $user_id, $user_id, $user_id, $user_id, $user_id]);
 
-// All users (for new DM)
-$all_users = db_get_all("SELECT id, full_name, role FROM users WHERE id!=? AND is_active=1 ORDER BY full_name", [$user_id]);
+// Students: only show DMs with allowed teachers
+if (has_role('student') && !empty($allowed_teacher_ids)) {
+    $dm_users = array_values(array_filter($dm_users, fn($u) => in_array($u['id'], $allowed_teacher_ids)));
+} elseif (has_role('student')) {
+    $dm_users = [];
+}
+
+// All users (for new DM) — students can only see their teachers
+if (has_role('student')) {
+    if (!empty($allowed_teacher_ids)) {
+        $ph = implode(',', array_fill(0, count($allowed_teacher_ids), '?'));
+        $all_users = db_get_all("SELECT id, full_name, role FROM users WHERE id IN ($ph) AND is_active=1 ORDER BY full_name", $allowed_teacher_ids);
+    } else {
+        $all_users = [];
+    }
+} else {
+    $all_users = db_get_all("SELECT id, full_name, role FROM users WHERE id!=? AND is_active=1 ORDER BY full_name", [$user_id]);
+}
 
 // Active conversation
 $active_group = (int)($_GET['group'] ?? 0);
