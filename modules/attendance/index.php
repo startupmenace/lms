@@ -16,10 +16,10 @@ $date = $_GET['date'] ?? date('Y-m-d');
 $students = [];
 
 if ($class_id) {
-    $students = db_get_all("SELECT s.*, 
-        (SELECT status FROM attendance WHERE student_id = s.id AND date = ?) as attendance_status,
-        (SELECT absent_reason FROM attendance WHERE student_id = s.id AND date = ?) as absent_reason
-        FROM students s WHERE s.class_id = ? ORDER BY s.parent_name", [$date, $date, $class_id]);
+    $students = db_get_all("SELECT s.*, a.status as attendance_status, a.absent_reason
+        FROM students s
+        LEFT JOIN attendance a ON a.student_id = s.id AND a.date = ?
+        WHERE s.class_id = ? ORDER BY s.parent_name", [$date, $class_id]);
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_attendance'])) {
