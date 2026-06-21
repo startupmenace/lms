@@ -186,7 +186,7 @@ include __DIR__ . '/../../includes/header.php';
 
     <?php
     $range = $_GET['range'] ?? 'month';
-    $report_class_id = $class_id ?: ($_GET['report_class_id'] ? (int)$_GET['report_class_id'] : 0);
+    $report_class_id = $class_id ?: ((int)($_GET['report_class_id'] ?? 0));
     $from_date = $_GET['from'] ?? date('Y-m-d', strtotime($range === 'week' ? '-7 days' : '-30 days'));
     $to_date = $_GET['to'] ?? date('Y-m-d');
     $student_filter = (int)($_GET['student_id'] ?? 0);
