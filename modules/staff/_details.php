@@ -35,7 +35,7 @@ if ($edit_id) {
             <div class="divide-y divide-gray-100 max-h-[500px] overflow-y-auto">
                 <?php foreach ($teachers as $t): ?>
                 <a href="?tab=details&staff_id=<?= $t['id'] ?>" class="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition <?= $edit_id==$t['id']?'bg-teal-50 border-l-2 border-l-teal-500':'' ?>">
-                    <div class="w-8 h-8 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-bold flex-shrink-0"><?= get_avatar($t['full_name']) ?></div>
+                    <div class="w-8 h-8 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-bold flex-shrink-0 overflow-hidden"><?= get_avatar($t['full_name'], $t['avatar']) ?></div>
                     <div class="min-w-0 flex-1">
                         <div class="text-xs font-semibold text-gray-900 truncate"><?= sanitize($t['full_name']) ?></div>
                         <div class="text-[10px] text-gray-500 truncate"><?= sanitize($t['employee_id'] ?: 'No ID') ?> · <?= ucfirst($t['role']) ?></div>

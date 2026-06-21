@@ -3,16 +3,22 @@ $class_teacher = db_get_row("SELECT u.full_name, u.email, u.phone FROM class_tea
 $date = $_GET['att_date'] ?? date('Y-m-d');
 $students = db_get_all("SELECT s.id, u.full_name FROM students s JOIN users u ON s.user_id=u.id WHERE s.class_id=? AND s.is_active=1 ORDER BY u.full_name", [$class_id]);
 
-$existing = db_get_all("SELECT student_id, status FROM attendance WHERE class_id=? AND date=?", [$class_id, $date]);
+$existing = db_get_all("SELECT student_id, status, absent_reason FROM attendance WHERE class_id=? AND date=?", [$class_id, $date]);
 $att_map = [];
-foreach ($existing as $a) $att_map[$a['student_id']] = $a['status'];
+$reason_map = [];
+foreach ($existing as $a) {
+    $att_map[$a['student_id']] = $a['status'];
+    $reason_map[$a['student_id']] = $a['absent_reason'];
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_attendance'])) {
     db_query("DELETE FROM attendance WHERE class_id=? AND date=?", [$class_id, $date]);
     $statuses = $_POST['status'] ?? [];
+    $reasons = $_POST['absent_reason'] ?? [];
     foreach ($statuses as $sid => $status) {
         if (in_array($status, ['present','absent','late','excused'])) {
-            db_insert("INSERT INTO attendance (class_id, student_id, date, status) VALUES (?,?,?,?)", [$class_id, (int)$sid, $date, $status]);
+            $reason = $reasons[$sid] ?? null;
+            db_insert("INSERT INTO attendance (class_id, student_id, date, status, absent_reason) VALUES (?,?,?,?,?)", [$class_id, (int)$sid, $date, $status, $reason ?: null]);
         }
     }
     set_flash('success', 'Attendance saved.');
@@ -55,11 +61,12 @@ $stats = db_get_row("SELECT COUNT(*) as total, SUM(CASE WHEN status='present' TH
                 <tr class="text-left text-xs text-gray-500 uppercase border-b border-gray-200">
                     <th class="pb-2 pr-3 font-medium">Student</th>
                     <th class="pb-2 font-medium">Status</th>
+                    <th class="pb-2 font-medium">Reason</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($students)): ?>
-                <tr><td colspan="2" class="py-8 text-center text-gray-400 text-xs">No students enrolled.</td></tr>
+                <tr><td colspan="3" class="py-8 text-center text-gray-400 text-xs">No students enrolled.</td></tr>
                 <?php else: ?>
                 <?php foreach ($students as $s): ?>
                 <tr class="border-b border-gray-50 hover:bg-gray-50 transition">
@@ -74,11 +81,14 @@ $stats = db_get_row("SELECT COUNT(*) as total, SUM(CASE WHEN status='present' TH
                             <?php $cur = $att_map[$s['id']] ?? 'present'; ?>
                             <?php foreach (['present'=>'green','absent'=>'red','late'=>'amber','excused'=>'blue'] as $val=>$color): ?>
                             <label class="flex items-center gap-1 px-2 py-1 rounded text-[10px] cursor-pointer border <?= $cur===$val ? "border-{$color}-300 bg-{$color}-50 text-{$color}-700" : 'border-gray-200 text-gray-400 hover:bg-gray-50' ?>">
-                                <input type="radio" name="status[<?= $s['id'] ?>]" value="<?= $val ?>" <?= $cur===$val?'checked':'' ?> class="hidden">
+                                <input type="radio" name="status[<?= $s['id'] ?>]" value="<?= $val ?>" <?= $cur===$val?'checked':'' ?> class="hidden" onchange="toggleClassReason(this, <?= $s['id'] ?>)">
                                 <?= ucfirst($val) ?>
                             </label>
                             <?php endforeach; ?>
                         </div>
+                    </td>
+                    <td class="py-2">
+                        <input type="text" name="absent_reason[<?= $s['id'] ?>]" value="<?= sanitize($reason_map[$s['id']] ?? '') ?>" placeholder="Sick, travel..." class="w-36 border border-gray-200 rounded px-2 py-1 text-xs focus:ring-2 focus:ring-teal-500 outline-none reason-<?= $s['id'] ?>" <?= ($att_map[$s['id']] ?? 'present') !== 'absent' ? 'style="opacity:0.4"' : '' ?>>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -92,3 +102,10 @@ $stats = db_get_row("SELECT COUNT(*) as total, SUM(CASE WHEN status='present' TH
     </div>
     <?php endif; ?>
 </form>
+
+<script>
+function toggleClassReason(el, sid) {
+    const inp = document.querySelector('.reason-' + sid);
+    if (inp) inp.style.opacity = el.value === 'absent' ? '1' : '0.4';
+}
+</script>

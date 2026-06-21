@@ -1,5 +1,5 @@
 <?php
-$teachers = db_get_all("SELECT u.id, u.full_name, sd.employee_id, u.role FROM users u LEFT JOIN staff_details sd ON u.id=sd.user_id WHERE u.role IN ('admin','teacher') AND u.is_active=1 ORDER BY u.full_name");
+$teachers = db_get_all("SELECT u.id, u.full_name, u.avatar, sd.employee_id, u.role FROM users u LEFT JOIN staff_details sd ON u.id=sd.user_id WHERE u.role IN ('admin','teacher') AND u.is_active=1 ORDER BY u.full_name");
 
 $date = $_GET['date'] ?? date('Y-m-d');
 $attendance_tab = $_GET['att_tab'] ?? 'mark';
@@ -63,7 +63,7 @@ $month = $_GET['month'] ?? date('Y-m');
                             <input type="hidden" name="user_id[]" value="<?= $t['id'] ?>">
                             <td class="py-2 px-2">
                                 <div class="flex items-center gap-2">
-                                    <div class="w-7 h-7 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-[10px] font-bold flex-shrink-0"><?= get_avatar($t['full_name']) ?></div>
+                                    <div class="w-7 h-7 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-[10px] font-bold flex-shrink-0 overflow-hidden"><?= get_avatar($t['full_name'], $t['avatar']) ?></div>
                                     <div>
                                         <div class="text-xs font-medium text-gray-900"><?= sanitize($t['full_name']) ?></div>
                                         <div class="text-[9px] text-gray-400"><?= sanitize($t['employee_id'] ?: '—') ?></div>

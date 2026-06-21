@@ -4,7 +4,7 @@ if (!has_role('admin')) {
     return;
 }
 
-$staff = db_get_all("SELECT id, full_name, email, phone, role, is_active, created_at FROM users WHERE role IN ('admin','teacher') ORDER BY is_active DESC, full_name");
+$staff = db_get_all("SELECT id, full_name, email, phone, role, avatar, is_active, created_at FROM users WHERE role IN ('admin','teacher') ORDER BY is_active DESC, full_name");
 
 $edit_account = null;
 if (isset($_GET['edit_id'])) {
@@ -120,7 +120,7 @@ if (isset($_GET['edit_id'])) {
             <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
                 <td class="py-2 px-2">
                     <div class="flex items-center gap-2">
-                        <div class="w-7 h-7 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-[10px] font-bold flex-shrink-0"><?= get_avatar($s['full_name']) ?></div>
+                        <div class="w-7 h-7 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-[10px] font-bold flex-shrink-0 overflow-hidden"><?= get_avatar($s['full_name'], $s['avatar']) ?></div>
                         <span class="text-xs font-medium text-gray-900"><?= sanitize($s['full_name']) ?></span>
                     </div>
                 </td>

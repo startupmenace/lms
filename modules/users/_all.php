@@ -60,7 +60,7 @@ $roles = db_get_all("SELECT name FROM roles ORDER BY name");
             <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
                 <td class="py-2 px-2">
                     <div class="flex items-center gap-2">
-                        <div class="w-7 h-7 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-[10px] font-bold flex-shrink-0"><?= get_avatar($u['full_name']) ?></div>
+                        <div class="w-7 h-7 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-[10px] font-bold flex-shrink-0 overflow-hidden"><?= get_avatar($u['full_name'], $u['avatar']) ?></div>
                         <span class="text-xs font-medium text-gray-900"><?= sanitize($u['full_name']) ?></span>
                     </div>
                 </td>

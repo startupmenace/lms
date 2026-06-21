@@ -114,8 +114,8 @@ $drivers = db_get_all("SELECT d.*,
             <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
                 <td class="py-3 px-3">
                     <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center text-xs font-bold text-teal-700 flex-shrink-0">
-                            <?= get_avatar($d['name']) ?>
+                        <div class="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center text-xs font-bold text-teal-700 flex-shrink-0 overflow-hidden">
+                            <?= get_avatar($d['name'], $d['photo'], 'drivers') ?>
                         </div>
                         <div>
                             <div class="font-semibold text-gray-900"><?= sanitize($d['name']) ?></div>
