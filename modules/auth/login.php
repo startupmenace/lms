@@ -34,100 +34,67 @@ $page_title = 'Login';
         .loader-content { text-align: center; }
         .loader-content p { font-family: 'Inter', system-ui, sans-serif; }
 
-        /* ─── Book Animation (Aaron Iker) ─── */
-        .book {
-            --color: #0d9488;
-            --duration: 3s;
-            width: 32px; height: 12px;
-            position: relative; margin: 48px auto 36px;
-            zoom: 2;
+        /* ─── Book Loader (3D flip) ─── */
+        .bk-loader {
+            position: relative;
+            width: 110px; height: 85px;
+            margin: 36px auto 30px;
+            perspective: 900px;
         }
-        .book .inner {
-            width: 32px; height: 12px; position: relative;
-            transform-origin: 2px 2px; transform: rotateZ(-90deg);
-            animation: book var(--duration) ease infinite;
+        .bk-loader .bk-spine {
+            position: absolute; left: 0; top: 0;
+            width: 8px; height: 100%;
+            background: linear-gradient(180deg, #0f766e, #115e59);
+            border-radius: 3px 0 0 3px;
+            z-index: 6;
+        }
+        .bk-loader .bk-cover {
+            position: absolute; left: 8px; top: 0;
+            width: 102px; height: 100%;
+            background: linear-gradient(135deg, #0d9488, #14b8a6);
+            border-radius: 0 5px 5px 0;
+            box-shadow: 0 10px 30px rgba(13,148,136,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+            z-index: 5;
+        }
+        .bk-loader .bk-cover::after {
+            content: ''; position: absolute;
+            inset: 10px 14px;
+            border: 1.5px solid rgba(255,255,255,0.2);
+            border-radius: 3px;
+        }
+        .bk-loader .bk-pages {
+            position: absolute; left: 8px; top: 2px;
+            width: 102px; height: calc(100% - 4px);
+            transform-style: preserve-3d;
+        }
+        .bk-loader .bk-page {
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f0fdfa 100%);
+            border-radius: 0 4px 4px 0;
+            transform-origin: left center;
             backface-visibility: hidden;
-        }
-        .book .inner .left,
-        .book .inner .right {
-            width: 60px; height: 4px; top: 0; border-radius: 2px;
-            background: var(--color); position: absolute;
-            backface-visibility: hidden;
-        }
-        .book .inner .left:before,
-        .book .inner .right:before {
-            content: ''; width: 48px; height: 4px; border-radius: 2px;
-            background: inherit; position: absolute; top: -10px; left: 6px;
-        }
-        .book .inner .left {
-            right: 28px; transform-origin: 58px 2px; transform: rotateZ(90deg);
-            animation: left var(--duration) ease infinite;
-            backface-visibility: hidden;
-        }
-        .book .inner .right {
-            left: 28px; transform-origin: 2px 2px; transform: rotateZ(-90deg);
-            animation: right var(--duration) ease infinite;
-            backface-visibility: hidden;
-        }
-        .book .inner .middle {
-            width: 32px; height: 12px; border: 4px solid var(--color);
-            border-top: 0; border-radius: 0 0 9px 9px; transform: translateY(2px);
-        }
-        .book ul {
-            margin: 0; padding: 0; list-style: none;
-            position: absolute; left: 50%; top: 0;
-        }
-        .book ul li {
-            height: 4px; border-radius: 2px; transform-origin: 100% 2px;
-            width: 48px; right: 0; top: -10px; position: absolute;
-            background: var(--color);
-            transform: rotateZ(0deg) translateX(-18px);
-            animation: pageFlip var(--duration) ease infinite backwards;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             will-change: transform;
+            box-shadow: inset -1px 0 2px rgba(0,0,0,0.03);
         }
-        .book ul li:nth-child(1)  { animation-delay: -0.08s; }
-        .book ul li:nth-child(2)  { animation-delay: -0.15s; }
-        .book ul li:nth-child(3)  { animation-delay: -0.23s; }
-        .book ul li:nth-child(4)  { animation-delay: -0.31s; }
-        .book ul li:nth-child(5)  { animation-delay: -0.38s; }
-        .book ul li:nth-child(6)  { animation-delay: -0.46s; }
-        .book ul li:nth-child(7)  { animation-delay: -0.54s; }
-        .book ul li:nth-child(8)  { animation-delay: -0.62s; }
-        .book ul li:nth-child(9)  { animation-delay: -0.69s; }
-        .book ul li:nth-child(10) { animation-delay: -0.77s; }
-        .book ul li:nth-child(11) { animation-delay: -0.85s; }
-        .book ul li:nth-child(12) { animation-delay: -0.92s; }
-
-        @keyframes pageFlip {
-            0%   { transform: rotateZ(0deg) translateX(-18px); }
-            6%   { transform: rotateZ(0deg) translateX(-18px); }
-            20%  { transform: rotateZ(180deg) translateX(-18px); }
-            50%  { transform: rotateZ(180deg) translateX(-18px); }
-            64%  { transform: rotateZ(0deg) translateX(-18px); }
-            100% { transform: rotateZ(0deg) translateX(-18px); }
+        .bk-loader .bk-page::after {
+            content: ''; position: absolute;
+            top: 0; right: 0; bottom: 0; left: 88%;
+            background: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.015) 100%);
+            border-radius: 0 4px 4px 0;
         }
-
-        @keyframes left {
-            0%, 100% { transform: rotateZ(90deg); }
-            5%   { transform: rotateZ(90deg); }
-            12%, 50%  { transform: rotateZ(0deg); }
-            57%  { transform: rotateZ(90deg); }
+        .bk-loader .bk-page.active {
+            z-index: 10;
+            transform: rotateY(-178deg);
         }
-        @keyframes right {
-            0%, 100% { transform: rotateZ(-90deg); }
-            5%   { transform: rotateZ(-90deg); }
-            12%, 50%  { transform: rotateZ(0deg); }
-            57%  { transform: rotateZ(-90deg); }
+        .bk-loader .bk-page.done {
+            z-index: 1;
+            transform: rotateY(-178deg);
         }
-        @keyframes book {
-            0%, 100% { transform: rotateZ(-90deg); transform-origin: 2px 2px; }
-            3%   { transform: rotateZ(-90deg); transform-origin: 2px 2px; }
-            10%, 50%  { transform: rotateZ(0deg); transform-origin: 2px 2px; }
-            50.01%, 54% { transform-origin: 30px 2px; }
-            57%  { transform: rotateZ(90deg); }
-            60%, 95%  { transform: rotateZ(0deg); transform-origin: 2px 2px; }
-            97%  { transform: rotateZ(-90deg); transform-origin: 2px 2px; }
-        }
+        .bk-loader .bk-pages .bk-page:nth-child(1) { z-index: 4; }
+        .bk-loader .bk-pages .bk-page:nth-child(2) { z-index: 3; }
+        .bk-loader .bk-pages .bk-page:nth-child(3) { z-index: 2; }
+        .bk-loader .bk-pages .bk-page:nth-child(4) { z-index: 1; }
 
         /* ─── Loading Text ─── */
         .loader-msg {
@@ -172,17 +139,15 @@ $page_title = 'Login';
     <!-- ─── Loader ─── -->
     <div id="loader-screen">
         <div class="loader-content">
-            <div class="book">
-                <div class="inner">
-                    <div class="left"></div>
-                    <div class="middle"></div>
-                    <div class="right"></div>
+            <div class="bk-loader">
+                <div class="bk-spine"></div>
+                <div class="bk-cover"></div>
+                <div class="bk-pages">
+                    <div class="bk-page"></div>
+                    <div class="bk-page"></div>
+                    <div class="bk-page"></div>
+                    <div class="bk-page"></div>
                 </div>
-                <ul>
-                    <li></li><li></li><li></li><li></li>
-                    <li></li><li></li><li></li><li></li>
-                    <li></li><li></li><li></li><li></li>
-                </ul>
             </div>
             <p class="loader-msg"><span id="loader-text">Getting learner records</span><span class="dots"></span></p>
             <p class="loader-sub">Ziada LMS</p>
@@ -257,9 +222,22 @@ $page_title = 'Login';
             'Organizing homework'
         ];
 
-        let idx = 0;
+        let idx = 0, pageIdx = 0;
         const el = document.getElementById('loader-text');
-        const interval = setInterval(() => {
+        const pages = document.querySelectorAll('.bk-page');
+
+        function cyclePage() {
+            pages.forEach(p => { p.classList.remove('active', 'done'); });
+            const cur = pages[pageIdx];
+            cur.classList.add('active');
+            setTimeout(() => {
+                cur.classList.remove('active');
+                cur.classList.add('done');
+            }, 500);
+            pageIdx = (pageIdx + 1) % pages.length;
+        }
+
+        const msgInt = setInterval(() => {
             idx = (idx + 1) % messages.length;
             el.style.opacity = '0';
             setTimeout(() => {
@@ -268,9 +246,13 @@ $page_title = 'Login';
             }, 200);
         }, 700);
 
+        const pageInt = setInterval(cyclePage, 600);
+        cyclePage();
+
         const totalDuration = messages.length * 700 + 1000;
         setTimeout(() => {
-            clearInterval(interval);
+            clearInterval(msgInt);
+            clearInterval(pageInt);
             document.getElementById('loader-screen').classList.add('hidden');
             document.getElementById('login-content').style.opacity = '1';
             document.getElementById('login-content').style.transition = 'opacity 0.6s ease';
