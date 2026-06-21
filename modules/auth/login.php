@@ -64,6 +64,7 @@ $page_title = 'Login';
         }
         .cover, .page {
             position: absolute;
+            left: 0; top: 0;
             padding: 1rem;
             transform-origin: 100% 0;
             border-radius: 5px 0 0 5px;
