@@ -16,7 +16,7 @@ $date = $_GET['date'] ?? date('Y-m-d');
 $students = [];
 
 if ($class_id) {
-    $students = db_get_all("SELECT s.*, a.status as attendance_status, a.absent_reason
+    $students = db_get_all("SELECT s.*, a.status as attendance_status, a.remark as absent_reason
         FROM students s
         LEFT JOIN attendance a ON a.student_id = s.id AND a.date = ?
         WHERE s.class_id = ? ORDER BY s.parent_name", [$date, $class_id]);
