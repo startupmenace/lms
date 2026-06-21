@@ -159,6 +159,10 @@ include __DIR__ . '/../../includes/parent-header.php';
                             <?php if (!empty($cfg['till'])): ?><p><strong>Till:</strong> <?= sanitize($cfg['till']) ?></p><?php endif; ?>
                             <?php if (!empty($cfg['account_format'])): ?><p><strong>Account:</strong> <?= sanitize($cfg['account_format']) ?></p><?php endif; ?>
                         </div>
+                        <button type="button" onclick="showMpesaInstant()"
+                                class="mt-3 w-full bg-green-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-green-700 transition flex items-center justify-center gap-2">
+                            <i class="fas fa-bolt"></i> Pay Instantly via M-Pesa
+                        </button>
                         <?php elseif ($gw['gateway_name'] === 'bank_transfer'): ?>
                         <div class="mt-3 text-sm text-gray-600 space-y-1 bg-gray-50 rounded-lg p-3">
                             <?php if (!empty($cfg['bank_name'])): ?><p><strong>Bank:</strong> <?= sanitize($cfg['bank_name']) ?></p><?php endif; ?>
@@ -207,6 +211,84 @@ include __DIR__ . '/../../includes/parent-header.php';
         </button>
         <p class="text-xs text-gray-400 text-center">Your payment will be verified by the school administration.</p>
     </form>
+
+    <!-- M-Pesa Instant Pay Modal -->
+    <div id="mpesa-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4" onclick="if(event.target===this)closeMpesaModal()">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-gray-900"><i class="fas fa-bolt text-green-600 mr-2"></i>Instant M-Pesa Payment</h3>
+                <button type="button" onclick="closeMpesaModal()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="text-sm text-gray-500 mb-4">Enter your M-Pesa phone number to receive an STK push prompt.</p>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Amount (KSh)</label>
+                    <input type="number" id="mpesa-amount" readonly value="<?= $transaction['due_amount'] ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-gray-50 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">M-Pesa Phone Number</label>
+                    <input type="tel" id="mpesa-phone" placeholder="0712345678" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 outline-none">
+                    <p class="text-xs text-gray-400 mt-1">The phone must be registered for M-Pesa.</p>
+                </div>
+                <div id="mpesa-status" class="hidden text-sm rounded-lg p-3"></div>
+                <button type="button" id="mpesa-pay-btn" onclick="triggerMpesaStk()"
+                        class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition flex items-center justify-center gap-2">
+                    <i class="fas fa-mobile-alt"></i> Send STK Push
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function showMpesaInstant() {
+        document.getElementById('mpesa-modal').classList.remove('hidden');
+        document.getElementById('mpesa-phone').focus();
+    }
+    function closeMpesaModal() {
+        document.getElementById('mpesa-modal').classList.add('hidden');
+        document.getElementById('mpesa-status').classList.add('hidden');
+    }
+    function triggerMpesaStk() {
+        const btn = document.getElementById('mpesa-pay-btn');
+        const status = document.getElementById('mpesa-status');
+        const phone = document.getElementById('mpesa-phone').value.trim();
+        const amount = document.getElementById('mpesa-amount').value;
+
+        if (!phone) { alert('Please enter your M-Pesa phone number'); return; }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        status.className = 'hidden';
+
+        fetch('mpesa-stk.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'invoice_no=<?= urlencode($transaction['invoice_no']) ?>&child_id=<?= $child_id ?>&amount=' + encodeURIComponent(amount) + '&phone=' + encodeURIComponent(phone)
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                status.className = 'bg-green-50 border border-green-200 text-green-700 rounded-lg p-3 text-sm';
+                status.innerHTML = '<i class="fas fa-check-circle mr-1"></i> ' + d.message;
+                btn.innerHTML = '<i class="fas fa-check"></i> STK Push Sent';
+                setTimeout(() => { closeMpesaModal(); window.location.href = 'fees.php?child_id=<?= $child_id ?>'; }, 3000);
+            } else {
+                status.className = 'bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm';
+                status.innerHTML = '<i class="fas fa-exclamation-circle mr-1"></i> ' + (d.error || 'Payment failed');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-mobile-alt"></i> Try Again';
+            }
+            status.classList.remove('hidden');
+        })
+        .catch(e => {
+            status.className = 'bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm';
+            status.innerHTML = '<i class="fas fa-exclamation-circle mr-1"></i> Network error. Please try again.';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-mobile-alt"></i> Try Again';
+            status.classList.remove('hidden');
+        });
+    }
+    </script>
     <?php else: ?>
     <div class="bg-white rounded-xl border border-gray-200 p-8 text-center">
         <i class="fas fa-exclamation-triangle text-4xl text-amber-400 mb-3 block"></i>
