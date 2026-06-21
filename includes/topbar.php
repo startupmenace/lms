@@ -40,10 +40,15 @@
                 <a href="<?= BASE_URL ?>/modules/profile/index.php" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition">
                     <i class="fas fa-user-circle text-gray-400 w-4 text-center"></i> My Profile
                 </a>
-                <?php if (has_role('student')): ?>
-                <a href="<?= BASE_URL ?>/modules/student/profile.php" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition">
-                    <i class="fas fa-graduation-cap text-gray-400 w-4 text-center"></i> Student Profile
+                <?php $profiles = $_SESSION['user_profiles'] ?? [$user_role ?? '']; if (count($profiles) > 1): ?>
+                <div class="border-t border-gray-100 my-1"></div>
+                <div class="px-4 py-1.5 text-[10px] text-gray-400 uppercase font-bold tracking-wider">Switch Profile</div>
+                <?php foreach ($profiles as $p): if ($p === get_user_role()) continue; ?>
+                <a href="<?= BASE_URL ?>/modules/profile/switch-profile.php?role=<?= $p ?>" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition">
+                    <i class="fas fa-<?= $p === 'parent' ? 'user-friends' : ($p === 'teacher' ? 'chalkboard-teacher' : ($p === 'admin' ? 'shield-alt' : 'user')) ?> text-gray-400 w-4 text-center"></i> Switch to <?= ucfirst($p) ?>
                 </a>
+                <?php endforeach; ?>
+                <div class="border-t border-gray-100 my-1"></div>
                 <?php endif; ?>
                 <div class="border-t border-gray-100"></div>
                 <a href="<?= BASE_URL ?>/modules/auth/logout.php" class="flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition">

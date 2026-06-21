@@ -26,6 +26,12 @@ $_SESSION['user_role'] = $user['role'];
 $_SESSION['user_name'] = $user['full_name'];
 $_SESSION['user_email'] = $user['email'];
 
+// Detect additional profiles
+$profiles = [$user['role']];
+$is_parent = db_get_row("SELECT id FROM student_parents WHERE parent_user_id=?", [$user['id']]);
+if ($is_parent && $user['role'] !== 'parent') $profiles[] = 'parent';
+$_SESSION['user_profiles'] = $profiles;
+
 if ($user['role'] === 'student') {
     redirect(BASE_URL . '/modules/student/dashboard.php');
 }

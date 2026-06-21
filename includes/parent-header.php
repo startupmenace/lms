@@ -26,8 +26,14 @@ $page_title = $page_title ?? 'Parent Portal';
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="icon" type="image/svg+xml" href="<?= BASE_URL ?>/favicon.svg">
+    <style>#app-loader{position:fixed;inset:0;z-index:9999;background:#0f172a;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s}#app-loader.hide{opacity:0;pointer-events:none}.ldr-book{width:60px;height:40px;position:relative;perspective:120px}.ldr-book .page{position:absolute;width:30px;height:40px;background:linear-gradient(135deg,#14b8a6,#0d9488);border-radius:2px;transform-origin:left center;animation:bookFlip 1.4s ease-in-out infinite}.ldr-book .page:nth-child(2){animation-delay:.2s;background:linear-gradient(135deg,#f97316,#ea580c)}.ldr-book .page:nth-child(3){animation-delay:.4s;background:linear-gradient(135deg,#8b5cf6,#7c3aed)}@keyframes bookFlip{0%,100%{transform:rotateY(0)}50%{transform:rotateY(-180deg)}}.ldr-text{margin-top:20px;font-size:13px;font-weight:600;letter-spacing:2px;color:#14b8a6;text-transform:uppercase;animation:pulseText 1.6s ease-in-out infinite}@keyframes pulseText{0%,100%{opacity:.4}50%{opacity:1}}</style>
 </head>
 <body class="bg-gray-50 font-sans antialiased">
+<div id="app-loader">
+    <div class="ldr-book"><div class="page"></div><div class="page"></div><div class="page"></div></div>
+    <div class="ldr-text">Loading</div>
+</div>
+<script>window.addEventListener('load',function(){var l=document.getElementById('app-loader');if(l)setTimeout(function(){l.classList.add('hide')},300)})</script>
 <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-30 lg:hidden"></div>
 <div class="flex h-screen overflow-hidden">
     <aside id="sidebar" class="fixed lg:relative inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 flex flex-col -translate-x-full lg:translate-x-0 transition-transform duration-300">
