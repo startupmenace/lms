@@ -8,7 +8,7 @@ $teachers = db_get_all("SELECT u.*, sd.id as sid, sd.employee_id, sd.kra_pin, sd
 $edit_user = null;
 $edit_id = (int)($_GET['staff_id'] ?? 0);
 if ($edit_id) {
-    $edit_user = db_get_row("SELECT u.*, sd.* FROM users u LEFT JOIN staff_details sd ON u.id=sd.user_id WHERE u.id=?", [$edit_id]);
+    $edit_user = db_get_row("SELECT u.*, sd.id as sd_id, sd.employee_id, sd.date_of_birth, sd.gender, sd.address, sd.qualification, sd.date_of_joining, sd.kra_pin, sd.bank_name, sd.bank_account, sd.bank_branch, sd.sha_number, sd.nssf_number, sd.tsc_number FROM users u LEFT JOIN staff_details sd ON u.id=sd.user_id WHERE u.id=?", [$edit_id]);
 }
 
 $kin = [];
