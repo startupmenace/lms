@@ -37,92 +37,99 @@ $page_title = 'Login';
         /* ─── Book Animation ─── */
         .book {
             position: relative;
-            width: 100px; height: 130px;
+            width: 96px; height: 124px;
             margin: 0 auto 28px;
-            perspective: 900px;
+            perspective: 600px;
         }
         .book-inner {
-            position: relative;
-            width: 100%; height: 100%;
+            position: relative; width: 100%; height: 100%;
             transform-style: preserve-3d;
-            animation: bookFloat 3s ease-in-out infinite;
+            animation: bookFloat 2.6s ease-in-out infinite;
         }
         @keyframes bookFloat {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
+            50% { transform: translateY(-6px); }
         }
 
-        .book-body {
+        /* Cover */
+        .book-cover {
             position: absolute; inset: 0;
-            background: linear-gradient(180deg, #0d9488 0%, #0f766e 100%);
-            border-radius: 4px 12px 12px 4px;
-            box-shadow: 0 8px 32px rgba(13, 148, 136, 0.25);
+            background: linear-gradient(165deg, #0d9488 0%, #0f766e 100%);
+            border-radius: 3px 10px 10px 3px;
+            box-shadow: 0 8px 28px rgba(13, 148, 136, 0.3);
         }
-        .book-body::before {
-            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 18px;
-            background: linear-gradient(180deg, #0f766e, #115e59);
-            border-radius: 4px 0 0 4px;
+        /* Spine */
+        .book-cover::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 14px;
+            background: linear-gradient(180deg, #115e59, #0f766e);
+            border-radius: 3px 0 0 3px;
         }
-        /* spine highlight */
-        .book-body::after {
-            content: ''; position: absolute; left: 14px; top: 4px; bottom: 4px; width: 2px;
-            background: rgba(255,255,255,0.12);
+        /* Spine highlight */
+        .book-cover::after {
+            content: ''; position: absolute; left: 11px; top: 5px; bottom: 5px; width: 2px;
+            background: rgba(255,255,255,0.1);
             border-radius: 1px;
         }
+        .book-cover .band {
+            position: absolute; left: 18px; right: 4px; height: 4px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 1px;
+        }
+        .book-cover .band.t { top: 20px; }
+        .book-cover .band.b { bottom: 20px; }
 
-        /* pages — left half */
-        .book-page-l,
-        .book-page-r {
-            position: absolute; top: 4px; bottom: 4px; width: 44px;
-            background: #f8fafc;
-            transform-origin: right center;
+        /* Pages — stacked thinner strips fanning in sequence */
+        .page {
+            position: absolute; top: 5px; bottom: 5px;
+            width: 36px;
+            background: linear-gradient(to bottom, #ffffff, #f1f5f9);
             border-radius: 1px;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
-        }
-        .book-page-l {
-            left: 20px; z-index: 2;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
             transform-origin: right center;
-            animation: pageOpenL 2.8s ease-in-out infinite;
+            backface-visibility: hidden;
+        }
+        .page.l {
+            left: 16px;
             border-right: 1px solid #e2e8f0;
         }
-        .book-page-r {
-            right: 4px; z-index: 2;
-            transform-origin: left center;
-            animation: pageOpenR 2.8s ease-in-out infinite;
+        .page.r {
+            left: 44px;
             border-left: 1px solid #e2e8f0;
-        }
-        @keyframes pageOpenL {
-            0%, 100% { transform: rotateY(0deg); }
-            25% { transform: rotateY(-55deg); }
-            50% { transform: rotateY(-55deg); }
-            75% { transform: rotateY(0deg); }
-        }
-        @keyframes pageOpenR {
-            0%, 100% { transform: rotateY(0deg); }
-            25% { transform: rotateY(55deg); }
-            50% { transform: rotateY(55deg); }
-            75% { transform: rotateY(0deg); }
+            transform-origin: left center;
         }
 
-        /* page line pattern */
-        .book-page-l::after, .book-page-r::after {
-            content: ''; position: absolute; left: 8px; right: 8px; top: 18px;
-            height: 20px;
-            background: repeating-linear-gradient(
-                180deg,
-                #cbd5e1 0px, #cbd5e1 1px,
-                transparent 1px, transparent 7px
-            );
-            opacity: 0.5;
+        /* Cascade 5 layers on each side */
+        .page.l:nth-child(1) { z-index: 6; animation: fanL 2.4s ease-in-out -0.5s infinite; }
+        .page.l:nth-child(2) { z-index: 5; animation: fanL 2.4s ease-in-out -0.35s infinite; }
+        .page.l:nth-child(3) { z-index: 4; animation: fanL 2.4s ease-in-out -0.2s infinite; }
+        .page.l:nth-child(4) { z-index: 3; animation: fanL 2.4s ease-in-out -0.05s infinite; }
+        .page.l:nth-child(5) { z-index: 2; animation: fanL 2.4s ease-in-out 0.1s infinite; }
+
+        .page.r:nth-child(6) { z-index: 6; animation: fanR 2.4s ease-in-out -0.5s infinite; }
+        .page.r:nth-child(7) { z-index: 5; animation: fanR 2.4s ease-in-out -0.35s infinite; }
+        .page.r:nth-child(8) { z-index: 4; animation: fanR 2.4s ease-in-out -0.2s infinite; }
+        .page.r:nth-child(9) { z-index: 3; animation: fanR 2.4s ease-in-out -0.05s infinite; }
+        .page.r:nth-child(10){ z-index: 2; animation: fanR 2.4s ease-in-out 0.1s infinite; }
+
+        /* Text lines on innermost pages only */
+        .page.l:nth-child(3)::after, .page.r:nth-child(8)::after {
+            content: ''; position: absolute; left: 6px; right: 6px; top: 14px; height: 16px;
+            background: repeating-linear-gradient(180deg, #cbd5e1 0, #cbd5e1 1px, transparent 1px, transparent 6px);
+            opacity: 0.4;
         }
 
-        /* book cover top/bottom decorative bands */
-        .book-band {
-            position: absolute; left: 0; right: 0; height: 5px;
-            background: rgba(255,255,255,0.08);
+        @keyframes fanL {
+            0%, 100% { transform: rotateY(0deg) translateZ(0); }
+            25% { transform: rotateY(-110deg) translateZ(1px); }
+            50% { transform: rotateY(-110deg) translateZ(1px); }
+            75% { transform: rotateY(0deg) translateZ(0); }
         }
-        .book-band-t { top: 22px; }
-        .book-band-b { bottom: 22px; }
+        @keyframes fanR {
+            0%, 100% { transform: rotateY(0deg) translateZ(0); }
+            25% { transform: rotateY(110deg) translateZ(1px); }
+            50% { transform: rotateY(110deg) translateZ(1px); }
+            75% { transform: rotateY(0deg) translateZ(0); }
+        }
 
         /* ─── Loading Text ─── */
         .loader-msg {
@@ -173,12 +180,20 @@ $page_title = 'Login';
         <div class="loader-content">
             <div class="book">
                 <div class="book-inner">
-                    <div class="book-body">
-                        <div class="book-band book-band-t"></div>
-                        <div class="book-band book-band-b"></div>
+                    <div class="book-cover">
+                        <div class="band t"></div>
+                        <div class="band b"></div>
                     </div>
-                    <div class="book-page-l"></div>
-                    <div class="book-page-r"></div>
+                    <div class="page l"></div>
+                    <div class="page l"></div>
+                    <div class="page l"></div>
+                    <div class="page l"></div>
+                    <div class="page l"></div>
+                    <div class="page r"></div>
+                    <div class="page r"></div>
+                    <div class="page r"></div>
+                    <div class="page r"></div>
+                    <div class="page r"></div>
                 </div>
             </div>
             <p class="loader-msg"><span id="loader-text">Getting learner records</span><span class="dots"></span></p>
