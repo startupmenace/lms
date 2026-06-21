@@ -58,6 +58,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             [$class_id, $parent_name, $parent_phone, $parent_email, $date_of_birth, $gender, $blood_group, $address, $city, $state, $guardian_name, $guardian_phone, $disabilities, $profile_image, $id]
         );
 
+        // Remove unlinked parents
+        foreach (($_POST['remove_parent_ids'] ?? []) as $rid) {
+            $rid = (int)$rid;
+            if ($rid > 0) {
+                db_query("DELETE FROM student_parents WHERE student_id=? AND parent_user_id=?", [$id, $rid]);
+            }
+        }
+
+        // Link existing parent users
+        foreach (($_POST['parent_user_ids'] ?? []) as $pid) {
+            $pid = (int)$pid;
+            if ($pid > 0) {
+                db_insert("INSERT IGNORE INTO student_parents (student_id, parent_user_id, relationship, is_primary) VALUES (?,?,'parent',0)", [$id, $pid]);
+            }
+        }
+
+        // Create new parent user on the fly
+        $np_name = sanitize($_POST['new_parent_name'] ?? '');
+        $np_email = sanitize($_POST['new_parent_email'] ?? '');
+        if ($np_name && $np_email) {
+            $np_phone = sanitize($_POST['new_parent_phone'] ?? '');
+            $np_password = $_POST['new_parent_password'] ?? 'parent123';
+            $existing = db_get_row("SELECT id FROM users WHERE email = ?", [$np_email]);
+            if ($existing) {
+                db_insert("INSERT IGNORE INTO student_parents (student_id, parent_user_id, relationship, is_primary) VALUES (?,?,'parent',0)", [$id, $existing['id']]);
+            } else {
+                $np_username = strtolower(preg_replace('/[^a-z0-9]/', '', explode('@', $np_email)[0]));
+                $np_id = db_insert("INSERT INTO users (username, email, password, full_name, phone, role, is_active) VALUES (?,?,?,?,?,'parent',1)", [$np_username, $np_email, password_hash($np_password, PASSWORD_DEFAULT), $np_name, $np_phone]);
+                if ($np_id) {
+                    db_insert("INSERT INTO student_parents (student_id, parent_user_id, relationship, is_primary) VALUES (?,?,'parent',1)", [$id, $np_id]);
+                }
+            }
+        }
+
         set_flash('success', 'Student profile updated successfully.');
         redirect('view.php?id=' . $id);
     }
@@ -160,6 +194,67 @@ include __DIR__ . '/../../includes/header.php';
 
             <hr class="border-gray-200">
 
+            <?php
+            $linked_parents = db_get_all(
+                "SELECT sp.*, u.full_name, u.email, u.phone FROM student_parents sp JOIN users u ON sp.parent_user_id = u.id WHERE sp.student_id = ?",
+                [$id]
+            );
+            $all_parent_users = db_get_all("SELECT id, full_name, email FROM users WHERE role='parent' ORDER BY full_name");
+            ?>
+
+            <h4 class="font-medium text-gray-900">Parent Accounts <span class="text-xs font-normal text-gray-400">(linked logins for mom & dad)</span></h4>
+            <div id="parent-accounts" class="space-y-2">
+                <?php foreach ($linked_parents as $lp): ?>
+                <div class="flex items-center gap-3 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                    <i class="fas fa-user-circle text-teal-600 text-lg"></i>
+                    <div class="flex-1 text-sm">
+                        <span class="font-medium text-gray-800"><?= sanitize($lp['full_name']) ?></span>
+                        <span class="text-gray-400 mx-1">·</span>
+                        <span class="text-gray-500"><?= sanitize($lp['email']) ?></span>
+                        <span class="text-[10px] text-gray-400 ml-2"><?= sanitize($lp['relationship']) ?></span>
+                    </div>
+                    <label class="text-xs text-red-500 cursor-pointer hover:text-red-700">
+                        <input type="checkbox" name="remove_parent_ids[]" value="<?= $lp['parent_user_id'] ?>" class="rounded border-gray-300 text-red-500 focus:ring-red-400 mr-1">
+                        Remove
+                    </label>
+                </div>
+                <?php endforeach; ?>
+                <div class="flex items-center gap-3">
+                    <select name="parent_user_ids[]" class="parent-select w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                        <option value="">-- Select existing parent user --</option>
+                        <?php foreach ($all_parent_users as $pu): ?>
+                        <option value="<?= $pu['id'] ?>"><?= sanitize($pu['full_name']) ?> (<?= sanitize($pu['email']) ?>)</option>
+                        <?php endforeach; ?>
+                    </select>
+                    <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-600 text-sm"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <button type="button" onclick="addParentRow()" class="text-teal-600 hover:text-teal-800 text-xs font-medium"><i class="fas fa-plus mr-1"></i> Add another parent</button>
+
+            <details class="mt-3 border border-gray-200 rounded-lg p-3">
+                <summary class="text-sm text-gray-600 cursor-pointer hover:text-teal-700 font-medium"><i class="fas fa-user-plus mr-1"></i> Or create a new parent account</summary>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Full Name</label>
+                        <input type="text" name="new_parent_name" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Email</label>
+                        <input type="email" name="new_parent_email" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Phone</label>
+                        <input type="text" name="new_parent_phone" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Password <span class="text-gray-400">(default: parent123)</span></label>
+                        <input type="text" name="new_parent_password" value="parent123" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                    </div>
+                </div>
+            </details>
+
+            <hr class="border-gray-200">
+
             <h4 class="font-medium text-gray-900">Medical Information</h4>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Disabilities / Medical Conditions</label>
@@ -174,4 +269,13 @@ include __DIR__ . '/../../includes/header.php';
     </div>
 </div>
 
+<script>
+function addParentRow() {
+    const container = document.getElementById('parent-accounts');
+    const template = container.querySelector('.flex:last-child');
+    const clone = template.cloneNode(true);
+    clone.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+    container.appendChild(clone);
+}
+</script>
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

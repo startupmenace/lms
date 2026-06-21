@@ -71,12 +71,37 @@ include __DIR__ . '/../../includes/header.php';
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div class="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4"><i class="fas fa-users text-teal-600 mr-2"></i>Parent Information</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4"><i class="fas fa-users text-teal-600 mr-2"></i>Parent / Guardian</h3>
             <div class="space-y-3">
                 <div><span class="text-gray-500 text-sm">Name:</span> <span class="text-gray-900 font-medium"><?= sanitize($student['parent_name'] ?? 'N/A') ?></span></div>
                 <div><span class="text-gray-500 text-sm">Phone:</span> <span class="text-gray-900 font-medium"><?= sanitize($student['parent_phone'] ?? 'N/A') ?></span></div>
                 <div><span class="text-gray-500 text-sm">Email:</span> <span class="text-gray-900 font-medium"><?= sanitize($student['parent_email'] ?? 'N/A') ?></span></div>
             </div>
+
+            <?php
+            $parent_accounts = db_get_all(
+                "SELECT u.full_name, u.email, u.phone, sp.relationship, sp.is_primary
+                 FROM student_parents sp JOIN users u ON sp.parent_user_id = u.id
+                 WHERE sp.student_id = ? ORDER BY sp.is_primary DESC",
+                [$id]
+            );
+            if ($parent_accounts):
+            ?>
+            <hr class="my-3 border-gray-100">
+            <h4 class="text-sm font-semibold text-gray-800 mb-2">Linked Accounts</h4>
+            <div class="space-y-2">
+                <?php foreach ($parent_accounts as $pa): ?>
+                <div class="flex items-center gap-2 text-sm">
+                    <i class="fas fa-user-circle text-teal-500"></i>
+                    <span class="font-medium text-gray-800"><?= sanitize($pa['full_name']) ?></span>
+                    <span class="text-gray-400 text-xs"><?= sanitize($pa['email']) ?></span>
+                    <?php if ($pa['is_primary']): ?>
+                    <span class="text-[10px] bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded-full">primary</span>
+                    <?php endif; ?>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
         </div>
 
         <div class="bg-white rounded-xl border border-gray-200 p-6">
