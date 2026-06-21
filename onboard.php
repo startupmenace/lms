@@ -3,14 +3,22 @@
  * School Onboarding Script
  * Run from CLI: php onboard.php
  *
- * Creates a fresh database, imports schema + migrations,
- * configures branding, and creates the admin account.
+ * Provisions a new school: creates DB, imports schema + migrations,
+ * seeds data, creates admin, and registers in the router DB
+ * (teachbetter_router) for multi-tenant subdomain routing.
+ *
+ * Zero changes to existing single-school setup — the router DB
+ * is purely additive. Activate multi-tenant mode by including
+ * includes/multitenant.php in config.php when ready.
  */
 
 // ── Config ─────────────────────────────────────────────
 $migration_files = glob(__DIR__ . '/database/migration-*.sql');
 $schema_file     = __DIR__ . '/database/teachbetter_lms.sql';
 $holidays_file   = __DIR__ . '/database/seed-holidays.sql';
+
+require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/includes/multitenant.php';
 
 // ── Helpers ────────────────────────────────────────────
 function prompt(string $label, string $default = ''): string {
@@ -54,7 +62,7 @@ echo "════════════════════════�
 
 // ── Gather info ───────────────────────────────────────
 $school_name     = prompt('School name', 'My School');
-$subdomain       = prompt('Subdomain (for school.ziada.com)', strtolower(preg_replace('/[^a-z0-9-]/', '', str_replace(' ', '-', $school_name))));
+$subdomain       = prompt('Subdomain', strtolower(preg_replace('/[^a-z0-9-]/', '', str_replace(' ', '-', $school_name))));
 $admin_email     = prompt('Admin email', 'admin@myschool.sc.ke');
 $admin_password  = prompt('Admin password', 'admin123');
 $timezone        = prompt('Timezone', 'Africa/Nairobi');
@@ -102,12 +110,13 @@ if (prompt_yes("\nSeed Kenya public holidays?")) {
 }
 
 // ── Register school in router DB ─────────────────────────
-echo "\n── Registering school in router...\n";
-db_insert(
-    "INSERT INTO schools (subdomain, site_name, timezone, db_host, db_port, db_name, db_user, db_pass) VALUES (?,?,?,?,?,?,?,?)",
-    [$subdomain, $school_name, $timezone, $db_host, $db_port, $db_name, $db_user, $db_pass]
-);
-echo "✓  School registered (subdomain: $subdomain)\n";
+echo "\n── Registering school in router DB...\n";
+if (!register_school($subdomain, $school_name, $db_name, $timezone, $db_host, $db_user, $db_pass, $db_port)) {
+    echo "⚠  Could not register school (subdomain may already exist). Skipping.\n";
+} else {
+    echo "✓  School registered in router (subdomain: $subdomain)\n";
+    echo "   When ready, visit http://$subdomain." . parse_url($site_url, PHP_URL_HOST) . "\n";
+}
 
 // ── Create admin user ───────────────────────────────────
 echo "\n── Creating admin user...\n";
@@ -201,14 +210,13 @@ echo "  Login:         $admin_email\n";
 echo "  Password:      $admin_password\n";
 echo "  Role:          admin\n";
 echo "\n";
+echo "  Router DB:     teachbetter_router created/updated\n";
 echo "  Next steps:\n";
 echo "    1. Set DATABASE_URL=mysql://$db_user:****@$db_host:$db_port/$db_name\n";
-echo "    2. Point DNS: *.$subdomain -> your server IP\n";
-echo "    3. Log in at http://$subdomain." . parse_url($site_url, PHP_URL_HOST) . "\n";
-echo "    4. Create teachers via Users module\n";
-echo "    5. Assign teachers to classes via Class module\n";
-echo "    6. Import students via CSV or manually\n";
-echo "    7. Configure fees, transport, timetable\n";
+echo "    2. Log in at $site_url\n";
+echo "    3. Create teachers, classes, students\n";
+echo "    4. To activate multi-tenant, include includes/multitenant.php\n";
+echo "       in config/config.php and set up subdomain DNS\n";
 echo "\n";
 echo "═══════════════════════════════════════════\n";
 

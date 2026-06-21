@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../includes/multitenant.php';
 
 // Require super admin auth
 if (empty($_SESSION['super_admin_id'])) {
@@ -8,9 +9,11 @@ if (empty($_SESSION['super_admin_id'])) {
     exit;
 }
 
-$total_schools   = db_get_row("SELECT COUNT(*) as c FROM schools")['c'];
-$active_schools  = db_get_row("SELECT COUNT(*) as c FROM schools WHERE is_active=1")['c'];
-$recent_schools  = db_get_all("SELECT * FROM schools ORDER BY created_at DESC LIMIT 5");
+$conn = router_db_connect();
+$total_schools  = $conn->query("SELECT COUNT(*) as c FROM schools")->fetch_assoc()['c'];
+$active_schools = $conn->query("SELECT COUNT(*) as c FROM schools WHERE is_active=1")->fetch_assoc()['c'];
+$recent_schools = $conn->query("SELECT * FROM schools ORDER BY created_at DESC LIMIT 5")->fetch_all(MYSQLI_ASSOC);
+$conn->close();
 
 $page_title = 'Super Admin Dashboard';
 ?>

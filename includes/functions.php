@@ -64,19 +64,12 @@ function get_avatar($name) {
     return substr($initials, 0, 2);
 }
 
-function get_school_scope() {
-    $id = defined('SCHOOL_ID') ? SCHOOL_ID : '0';
-    return 'school_' . $id;
-}
-
 function get_upload_base() {
-    $scope = get_school_scope();
-    $default = __DIR__ . '/../uploads/' . $scope;
-    if (!is_dir($default)) mkdir($default, 0777, true);
+    $default = __DIR__ . '/../uploads';
     if (is_dir($default) && is_writable($default)) {
         return $default;
     }
-    $tmp = sys_get_temp_dir() . '/ziada_uploads/' . $scope;
+    $tmp = sys_get_temp_dir() . '/ziada_uploads';
     if (!is_dir($tmp)) mkdir($tmp, 0777, true);
     return $tmp;
 }
@@ -89,12 +82,11 @@ function ensure_upload_dir($subdir = 'students') {
 }
 
 function upload_url($filename, $subdir = 'students') {
-    $scope = get_school_scope();
-    $default = __DIR__ . '/../uploads/' . $scope;
+    $default = __DIR__ . '/../uploads';
     if (is_dir($default) && is_writable($default)) {
-        return BASE_URL . '/uploads/' . $scope . '/' . $subdir . '/' . $filename;
+        return BASE_URL . '/uploads/' . $subdir . '/' . $filename;
     }
-    return BASE_URL . '/uploads/serve.php?scope=' . $scope . '&dir=' . $subdir . '&file=' . rawurlencode($filename);
+    return BASE_URL . '/uploads/serve.php?dir=' . $subdir . '&file=' . rawurlencode($filename);
 }
 
 function user_avatar_html($user, $size = 'w-8 h-8', $text_size = 'text-sm') {

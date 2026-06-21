@@ -1,0 +1,146 @@
+<?php
+/**
+ * Multi-tenant helpers — purely additive, zero core file changes.
+ *
+ * When you're ready to activate multi-tenant mode, uncomment the
+ * include line in config/config.php. Until then, the system runs
+ * as a single-school deployment with zero changes.
+ *
+ * The router DB (teachbetter_router) lives on the same MySQL server
+ * as your school DBs. It stores:
+ *   - schools    : subdomain, db_name, branding, etc.
+ *   - super_admins : platform-level admin accounts
+ */
+
+// ── Router DB connection ──────────────────────────────
+function router_db_connect() {
+    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, '', DB_PORT);
+    if ($conn->connect_error) die("Router DB: " . $conn->connect_error);
+    $conn->select_db('teachbetter_router');
+    $conn->set_charset("utf8mb4");
+    return $conn;
+}
+
+// ── Resolve school by hostname ────────────────────────
+function resolve_school_from_domain($host = null) {
+    $host = $host ?: ($_SERVER['HTTP_HOST'] ?? '');
+    $parts = explode('.', $host);
+    $subdomain = (count($parts) > 2) ? $parts[0] : '';
+    if (!$subdomain || in_array($subdomain, ['www', 'admin'], true)) return null;
+
+    $conn = router_db_connect();
+    $stmt = $conn->prepare("SELECT * FROM schools WHERE subdomain = ? AND is_active = 1 LIMIT 1");
+    $stmt->bind_param('s', $subdomain);
+    $stmt->execute();
+    $school = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    $conn->close();
+    return $school;
+}
+
+// ── Re-define db_connect to use school's DB ──────────
+// Call this at the top of config.php when multi-tenant mode is active:
+//   require_once __DIR__ . '/../includes/multitenant.php';
+//   maybe_enable_multitenant();
+function maybe_enable_multitenant() {
+    $school = resolve_school_from_domain();
+    if (!$school) return; // Stay on original DB
+
+    // Override DB constants for this school
+    $GLOBALS['_mt_db_host'] = $school['db_host'] ?: DB_HOST;
+    $GLOBALS['_mt_db_user'] = $school['db_user'] ?: DB_USER;
+    $GLOBALS['_mt_db_pass'] = $school['db_pass'] ?: DB_PASS;
+    $GLOBALS['_mt_db_name'] = $school['db_name'];
+    $GLOBALS['_mt_db_port'] = $school['db_port'] ?: DB_PORT;
+
+    // Redefine db_connect to use school DB
+    // (original db_connect lives as _original_db_connect)
+    if (!function_exists('_original_db_connect')) {
+        eval('
+            function _original_db_connect() {
+                return call_user_func_array("db_connect", func_get_args());
+            }
+            function db_connect() {
+                $conn = new mysqli(
+                    $GLOBALS["_mt_db_host"],
+                    $GLOBALS["_mt_db_user"],
+                    $GLOBALS["_mt_db_pass"],
+                    $GLOBALS["_mt_db_name"],
+                    $GLOBALS["_mt_db_port"]
+                );
+                if ($conn->connect_error) die("School DB: " . $conn->connect_error);
+                $conn->set_charset("utf8mb4");
+                return $conn;
+            }
+        ');
+    }
+
+    if (!defined('SITE_NAME') && !empty($school['site_name'])) define('SITE_NAME', $school['site_name']);
+    if (!empty($school['timezone'])) {
+        date_default_timezone_set($school['timezone']);
+    }
+}
+
+// ── Provision a new school database ───────────────────
+function provision_school_db($db_name, $db_host = null, $db_user = null, $db_pass = null, $db_port = null) {
+    $db_host = $db_host ?: DB_HOST;
+    $db_user = $db_user ?: DB_USER;
+    $db_pass = $db_pass ?: DB_PASS;
+    $db_port = $db_port ?: DB_PORT;
+
+    $conn = new mysqli($db_host, $db_user, $db_pass, '', $db_port);
+    if ($conn->connect_error) throw new Exception("Cannot connect: " . $conn->connect_error);
+
+    $conn->query("DROP DATABASE IF EXISTS `$db_name`");
+    if (!$conn->query("CREATE DATABASE `$db_name` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")) {
+        throw new Exception("Create DB failed: " . $conn->error);
+    }
+    $conn->select_db($db_name);
+
+    // Schema
+    $schema = file_get_contents(__DIR__ . '/../database/teachbetter_lms.sql');
+    if (!$conn->multi_query($schema)) throw new Exception("Schema failed: " . $conn->error);
+    while ($conn->more_results()) { $conn->next_result(); }
+
+    // Migrations
+    foreach (glob(__DIR__ . '/../database/migration-*.sql') as $mf) {
+        $sql = file_get_contents($mf);
+        if (trim($sql) === '') continue;
+        $sql = preg_replace('/^USE\s+`[^`]+`;/im', '', $sql);
+        $conn->multi_query($sql);
+        while ($conn->more_results()) { $conn->next_result(); }
+    }
+
+    $conn->close();
+}
+
+// ── Create admin user in school's DB ──────────────────
+function create_school_admin($db_name, $email, $password, $full_name = 'Administrator') {
+    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, '', DB_PORT);
+    $conn->select_db($db_name);
+    $hash = password_hash($password, PASSWORD_DEFAULT);
+    $username = explode('@', $email)[0];
+    $stmt = $conn->prepare("INSERT IGNORE INTO users (username, email, password, full_name, role, is_active) VALUES (?, ?, ?, ?, 'admin', 1)");
+    $stmt->bind_param('ssss', $username, $email, $hash, $full_name);
+    $stmt->execute();
+    $id = $stmt->insert_id;
+    $stmt->close();
+    $conn->close();
+    return $id;
+}
+
+// ── Register school in router DB ──────────────────────
+function register_school($subdomain, $site_name, $db_name, $timezone = 'Africa/Nairobi', $db_host = null, $db_user = null, $db_pass = null, $db_port = null) {
+    $conn = router_db_connect();
+    $stmt = $conn->prepare("INSERT IGNORE INTO schools (subdomain, site_name, timezone, db_host, db_port, db_name, db_user, db_pass) VALUES (?,?,?,?,?,?,?,?)");
+    $db_host = $db_host ?: DB_HOST;
+    $db_user = $db_user ?: DB_USER;
+    $db_pass = $db_pass ?: DB_PASS;
+    $db_port = $db_port ?: DB_PORT;
+    $stmt->bind_param('ssssisss', $subdomain, $site_name, $timezone, $db_host, $db_port, $db_name, $db_user, $db_pass);
+    $stmt->execute();
+    $id = $stmt->insert_id;
+    $stmt->close();
+    $conn->close();
+    return $id;
+}

@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../includes/multitenant.php';
 
 if (empty($_SESSION['super_admin_id'])) { header('Location: login.php'); exit; }
 
@@ -13,10 +14,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $admin_email = trim($_POST['admin_email'] ?? '');
     $admin_pass  = $_POST['admin_password'] ?? 'admin123';
     $timezone    = trim($_POST['timezone'] ?? 'Africa/Nairobi');
-    $db_host     = trim($_POST['db_host'] ?? ROUTER_DB_HOST);
-    $db_port     = (int)($_POST['db_port'] ?? ROUTER_DB_PORT);
-    $db_user     = trim($_POST['db_user'] ?? ROUTER_DB_USER);
-    $db_pass     = $_POST['db_pass'] ?? ROUTER_DB_PASS;
+    $db_host     = trim($_POST['db_host'] ?? DB_HOST);
+    $db_port     = (int)($_POST['db_port'] ?? DB_PORT);
+    $db_user     = trim($_POST['db_user'] ?? DB_USER);
+    $db_pass     = $_POST['db_pass'] ?? DB_PASS;
     $db_name     = trim(preg_replace('/[^a-z0-9_]/', '', $_POST['db_name'] ?? ''));
     $seed_classes = isset($_POST['seed_classes']);
     $seed_subjects = isset($_POST['seed_subjects']);
@@ -28,58 +29,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Subdomain must be at least 3 characters.';
     } else {
         // Check uniqueness
-        $existing = db_get_row("SELECT id FROM schools WHERE subdomain=? OR db_name=?", [$subdomain, $db_name]);
+        $rconn = router_db_connect();
+        $existing = $rconn->query("SELECT id FROM schools WHERE subdomain='$subdomain' OR db_name='$db_name'")->fetch_assoc();
+        $rconn->close();
         if ($existing) {
             $error = 'A school with this subdomain or database name already exists.';
         } else {
             try {
-                // 1. Create school database
-                $rconn = new mysqli($db_host, $db_user, $db_pass, '', $db_port);
-                if ($rconn->connect_error) throw new Exception("Cannot connect to MySQL: " . $rconn->connect_error);
-
-                // Drop if exists, then create fresh
-                $rconn->query("DROP DATABASE IF EXISTS `$db_name`");
-                if (!$rconn->query("CREATE DATABASE `$db_name` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")) {
-                    throw new Exception("Failed to create database: " . $rconn->error);
-                }
-                $rconn->select_db($db_name);
-
-                // 2. Import schema
-                $schema = file_get_contents(__DIR__ . '/../../database/teachbetter_lms.sql');
-                if (!$rconn->multi_query($schema)) throw new Exception("Schema import failed: " . $rconn->error);
-                while ($rconn->more_results()) { $rconn->next_result(); }
-
-                // 3. Run all migrations
-                $migrations = glob(__DIR__ . '/../../database/migration-*.sql');
-                foreach ($migrations as $mf) {
-                    $sql = file_get_contents($mf);
-                    if (trim($sql) === '') continue;
-                    // Filter out USE statements that might reference other DBs
-                    $sql = preg_replace('/^USE\s+`[^`]+`;/im', '', $sql);
-                    if (!$rconn->multi_query($sql)) {
-                        // Log but don't fail
-                        $rconn->next_result();
-                    }
-                    while ($rconn->more_results()) { $rconn->next_result(); }
-                }
+                provision_school_db($db_name, $db_host, $db_user, $db_pass, $db_port);
 
                 // 4. Seed holidays
                 if ($seed_holidays) {
                     $hfile = __DIR__ . '/../../database/seed-holidays.sql';
                     if (file_exists($hfile)) {
+                        $rconn = new mysqli($db_host, $db_user, $db_pass, $db_name, $db_port);
                         $hsql = file_get_contents($hfile);
                         $rconn->multi_query($hsql);
                         while ($rconn->more_results()) { $rconn->next_result(); }
+                        $rconn->close();
                     }
                 }
 
                 // 5. Create admin user in school's DB
-                $hash = password_hash($admin_pass, PASSWORD_DEFAULT);
-                $stmt = $rconn->prepare("INSERT INTO users (username, email, password, full_name, role, is_active) VALUES (?, ?, ?, ?, 'admin', 1)");
-                $username = explode('@', $admin_email)[0];
-                $stmt->bind_param('ssss', $username, $admin_email, $hash, $school_name . ' Admin');
-                $stmt->execute();
-                $stmt->close();
+                create_school_admin($db_name, $admin_email, $admin_pass, $school_name . ' Admin');
 
                 // 6. Seed classes
                 if ($seed_classes) {
@@ -115,12 +87,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
 
-                $rconn->close();
-
                 // 8. Register school in router DB
-                db_insert("INSERT INTO schools (subdomain, site_name, timezone, db_host, db_port, db_name, db_user, db_pass) VALUES (?,?,?,?,?,?,?,?)",
-                    [$subdomain, $school_name, $timezone, $db_host, $db_port, $db_name, $db_user, $db_pass]
-                );
+                register_school($subdomain, $school_name, $db_name, $timezone, $db_host, $db_user, $db_pass, $db_port);
 
                 $success = "School <strong>" . sanitize($school_name) . "</strong> created!<br>
                     Login: <strong>" . sanitize($admin_email) . "</strong> / <strong>" . sanitize($admin_pass) . "</strong><br>

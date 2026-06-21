@@ -1,41 +1,43 @@
 <?php
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../includes/multitenant.php';
 
 if (empty($_SESSION['super_admin_id'])) { header('Location: login.php'); exit; }
+
+$conn = router_db_connect();
 
 $toggle = $_GET['toggle'] ?? null;
 $delete = $_GET['delete'] ?? null;
 
 if ($toggle) {
-    $s = db_get_row("SELECT id, is_active FROM schools WHERE id=?", [(int)$toggle]);
+    $s = $conn->query("SELECT id, is_active FROM schools WHERE id=" . (int)$toggle)->fetch_assoc();
     if ($s) {
         $new = $s['is_active'] ? 0 : 1;
-        db_query("UPDATE schools SET is_active=? WHERE id=?", [$new, $s['id']]);
+        $conn->query("UPDATE schools SET is_active=$new WHERE id={$s['id']}");
     }
+    $conn->close();
     header('Location: schools.php');
     exit;
 }
 
 if ($delete) {
-    $s = db_get_row("SELECT id, db_name FROM schools WHERE id=?", [(int)$delete]);
+    $s = $conn->query("SELECT id, db_name FROM schools WHERE id=" . (int)$delete)->fetch_assoc();
     if ($s) {
-        // Optionally drop the school database
-        db_query("UPDATE schools SET is_active=0 WHERE id=?", [$s['id']]);
+        $conn->query("UPDATE schools SET is_active=0 WHERE id={$s['id']}");
     }
+    $conn->close();
     header('Location: schools.php');
     exit;
 }
 
-$search  = $_GET['search'] ?? '';
+$search  = $conn->real_escape_string($_GET['search'] ?? '');
 $where   = '';
-$params  = [];
 if ($search) {
-    $where = "WHERE site_name LIKE ? OR subdomain LIKE ?";
-    $p = "%$search%";
-    $params = [$p, $p];
+    $where = "WHERE site_name LIKE '%$search%' OR subdomain LIKE '%$search%'";
 }
-$schools = db_get_all("SELECT * FROM schools $where ORDER BY created_at DESC", $params);
+$schools = $conn->query("SELECT * FROM schools $where ORDER BY created_at DESC")->fetch_all(MYSQLI_ASSOC);
+$conn->close();
 
 $page_title = 'Manage Schools';
 ?>
