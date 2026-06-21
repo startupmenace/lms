@@ -10,7 +10,6 @@
 // ── Config ─────────────────────────────────────────────
 $migration_files = glob(__DIR__ . '/database/migration-*.sql');
 $schema_file     = __DIR__ . '/database/teachbetter_lms.sql';
-$config_file     = __DIR__ . '/config/config.php';
 $holidays_file   = __DIR__ . '/database/seed-holidays.sql';
 
 // ── Helpers ────────────────────────────────────────────
@@ -55,6 +54,7 @@ echo "════════════════════════�
 
 // ── Gather info ───────────────────────────────────────
 $school_name     = prompt('School name', 'My School');
+$subdomain       = prompt('Subdomain (for school.ziada.com)', strtolower(preg_replace('/[^a-z0-9-]/', '', str_replace(' ', '-', $school_name))));
 $admin_email     = prompt('Admin email', 'admin@myschool.sc.ke');
 $admin_password  = prompt('Admin password', 'admin123');
 $timezone        = prompt('Timezone', 'Africa/Nairobi');
@@ -101,27 +101,13 @@ if (prompt_yes("\nSeed Kenya public holidays?")) {
     exec_sql_file($conn, $holidays_file, 'seed-holidays.sql');
 }
 
-// ── Update config.php ────────────────────────────────────
-echo "\n── Writing config...\n";
-$config_raw = file_get_contents($config_file);
-$config_raw = preg_replace(
-    "/define\('SITE_NAME',\s*'[^']*'\)/",
-    "define('SITE_NAME', '$school_name')",
-    $config_raw
+// ── Register school in router DB ─────────────────────────
+echo "\n── Registering school in router...\n";
+db_insert(
+    "INSERT INTO schools (subdomain, site_name, timezone, db_host, db_port, db_name, db_user, db_pass) VALUES (?,?,?,?,?,?,?,?)",
+    [$subdomain, $school_name, $timezone, $db_host, $db_port, $db_name, $db_user, $db_pass]
 );
-$config_raw = preg_replace(
-    "/define\('TIMEZONE',\s*'[^']*'\)/",
-    "define('TIMEZONE', '$timezone')",
-    $config_raw
-);
-// Update BASE_URL to static (or leave dynamic — keep dynamic for dev, prompt for prod)
-// $config_raw = preg_replace(
-//     "/define\('BASE_URL',.*\)/",
-//     "define('BASE_URL', '$site_url')",
-//     $config_raw
-// );
-file_put_contents($config_file, $config_raw);
-echo "✓  Config updated (SITE_NAME, TIMEZONE)\n";
+echo "✓  School registered (subdomain: $subdomain)\n";
 
 // ── Create admin user ───────────────────────────────────
 echo "\n── Creating admin user...\n";
@@ -207,6 +193,7 @@ echo "           Onboarding Complete!\n";
 echo "═══════════════════════════════════════════\n";
 echo "\n";
 echo "  School:        $school_name\n";
+echo "  Subdomain:     $subdomain\n";
 echo "  Site URL:      $site_url\n";
 echo "  Timezone:      $timezone\n";
 echo "\n";
@@ -216,11 +203,12 @@ echo "  Role:          admin\n";
 echo "\n";
 echo "  Next steps:\n";
 echo "    1. Set DATABASE_URL=mysql://$db_user:****@$db_host:$db_port/$db_name\n";
-echo "    2. Log in at $site_url\n";
-echo "    3. Create teachers via Users module\n";
-echo "    4. Assign teachers to classes via Class module\n";
-echo "    5. Import students via CSV or manually\n";
-echo "    6. Configure fees, transport, timetable\n";
+echo "    2. Point DNS: *.$subdomain -> your server IP\n";
+echo "    3. Log in at http://$subdomain." . parse_url($site_url, PHP_URL_HOST) . "\n";
+echo "    4. Create teachers via Users module\n";
+echo "    5. Assign teachers to classes via Class module\n";
+echo "    6. Import students via CSV or manually\n";
+echo "    7. Configure fees, transport, timetable\n";
 echo "\n";
 echo "═══════════════════════════════════════════\n";
 
