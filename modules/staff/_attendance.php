@@ -12,7 +12,6 @@ if ($attendance_tab === 'mark') {
 }
 
 // Reports
-$month = $_GET['month'] ?? date('Y-m');
 ?>
 <div class="flex items-center justify-between mb-4">
     <h3 class="font-bold text-gray-900 text-sm flex items-center gap-2">
@@ -101,32 +100,42 @@ $month = $_GET['month'] ?? date('Y-m');
         </form>
         <?php else: ?>
         <!-- Reports -->
-        <form method="GET" class="flex items-end gap-3 mb-4">
+        <form method="GET" class="flex flex-wrap items-end gap-3 mb-4">
             <input type="hidden" name="tab" value="attendance">
             <input type="hidden" name="att_tab" value="report">
             <div>
-                <label class="block text-xs font-bold text-gray-700 mb-1">Month</label>
-                <input type="month" name="month" value="<?= $month ?>" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-teal-500 outline-none">
+                <label class="block text-xs font-bold text-gray-700 mb-1">From</label>
+                <input type="date" name="from" value="<?= $_GET['from'] ?? date('Y-m-01') ?>" class="border border-gray-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-teal-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">To</label>
+                <input type="date" name="to" value="<?= $_GET['to'] ?? date('Y-m-t') ?>" class="border border-gray-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-teal-500 outline-none">
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1">Staff</label>
-                <select name="staff_id" class="border border-gray-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-teal-500 outline-none" onchange="this.form.submit()">
+                <select name="staff_id" class="border border-gray-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-teal-500 outline-none">
                     <option value="">All Staff</option>
                     <?php foreach ($teachers as $t): ?>
                     <option value="<?= $t['id'] ?>" <?= ($_GET['staff_id']??'')==$t['id']?'selected':'' ?>><?= sanitize($t['full_name']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
+            <div>
+                <button type="submit" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-xs hover:bg-teal-700 transition"><i class="fas fa-search mr-1"></i>Filter</button>
+            </div>
+            <div class="flex gap-1">
+                <a href="?tab=attendance&att_tab=report&from=<?= date('Y-m-01') ?>&to=<?= date('Y-m-t') ?>" class="px-3 py-2 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition">This Month</a>
+                <a href="?tab=attendance&att_tab=report&from=<?= date('Y-m-d', strtotime('-7 days')) ?>&to=<?= date('Y-m-d') ?>" class="px-3 py-2 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition">Last 7 Days</a>
+                <a href="?tab=attendance&att_tab=report&from=<?= date('Y-01-01') ?>&to=<?= date('Y-12-31') ?>" class="px-3 py-2 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition">This Year</a>
+            </div>
         </form>
 
         <?php
-        $y = substr($month, 0, 4);
-        $m = substr($month, 5, 2);
-        $days_in_month = cal_days_in_month(CAL_GREGORIAN, (int)$m, (int)$y);
-
+        $from_date = $_GET['from'] ?? date('Y-m-01');
+        $to_date = $_GET['to'] ?? date('Y-m-t');
         $staff_filter = (int)($_GET['staff_id'] ?? 0);
-        $where = "WHERE MONTH(sa.date)=? AND YEAR(sa.date)=?";
-        $params = [$m, $y];
+        $where = "WHERE sa.date BETWEEN ? AND ?";
+        $params = [$from_date, $to_date];
         if ($staff_filter) { $where .= " AND sa.user_id=?"; $params[] = $staff_filter; }
 
         $report_data = db_get_all("SELECT sa.*, u.full_name, sd.employee_id
@@ -142,12 +151,14 @@ $month = $_GET['month'] ?? date('Y-m');
             $grouped[$uid]['records'][$r['date']] = $r;
             $grouped[$uid]['summary'][$r['status']]++;
         }
+
+        $total_days = count(array_unique(array_column($report_data, 'date')));
         ?>
 
         <?php if (empty($grouped)): ?>
         <div class="text-center py-10 text-gray-400">
             <i class="fas fa-calendar text-3xl mb-3 block text-gray-300"></i>
-            <p class="text-sm">No attendance records for <?= date('F Y', strtotime($month . '-01')) ?>.</p>
+            <p class="text-sm">No attendance records for this period.</p>
         </div>
         <?php else: ?>
         <div class="overflow-x-auto">
@@ -155,40 +166,31 @@ $month = $_GET['month'] ?? date('Y-m');
                 <thead>
                     <tr class="border-b border-gray-200 bg-gray-50/50">
                         <th class="text-left py-2 px-2 font-bold text-gray-700 uppercase text-[10px] tracking-wider sticky left-0 bg-gray-50 z-10">Staff</th>
-                        <?php for ($d = 1; $d <= $days_in_month; $d++): ?>
-                        <th class="text-center py-2 px-1 font-bold text-gray-700 uppercase text-[9px] tracking-wider min-w-[24px] <?= date('w', strtotime("$y-$m-$d"))==0?'text-red-500':'' ?>"><?= $d ?></th>
-                        <?php endfor; ?>
-                        <th class="text-center py-2 px-2 font-bold text-gray-700 uppercase text-[10px] tracking-wider bg-gray-50">P</th>
-                        <th class="text-center py-2 px-2 font-bold text-gray-700 uppercase text-[10px] tracking-wider bg-gray-50">A</th>
-                        <th class="text-center py-2 px-2 font-bold text-gray-700 uppercase text-[10px] tracking-wider bg-gray-50">L</th>
+                        <th class="text-center py-2 px-2 font-bold text-gray-700 uppercase text-[10px] tracking-wider">Days</th>
+                        <th class="text-center py-2 px-2 font-bold text-gray-700 uppercase text-[10px] tracking-wider bg-green-50">Present</th>
+                        <th class="text-center py-2 px-2 font-bold text-gray-700 uppercase text-[10px] tracking-wider bg-red-50">Absent</th>
+                        <th class="text-center py-2 px-2 font-bold text-gray-700 uppercase text-[10px] tracking-wider bg-amber-50">Late</th>
+                        <th class="text-center py-2 px-2 font-bold text-gray-700 uppercase text-[10px] tracking-wider bg-blue-50">Half-Day</th>
+                        <th class="text-center py-2 px-2 font-bold text-gray-700 uppercase text-[10px] tracking-wider">%</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($grouped as $uid => $g): ?>
+                    <?php foreach ($grouped as $uid => $g):
+                        $total = $g['summary']['present'] + $g['summary']['absent'] + $g['summary']['late'] + $g['summary']['half-day'];
+                        $pct = $total > 0 ? round($g['summary']['present'] / $total * 100) : 0;
+                        $color = $pct >= 90 ? 'text-green-600' : ($pct >= 75 ? 'text-amber-600' : 'text-red-600');
+                    ?>
                     <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
                         <td class="py-1.5 px-2 font-medium text-gray-900 sticky left-0 bg-white z-10">
                             <?= sanitize($g['name']) ?>
                             <span class="text-[9px] text-gray-400 block"><?= sanitize($g['emp_id'] ?? '') ?></span>
                         </td>
-                        <?php for ($d = 1; $d <= $days_in_month; $d++): 
-                            $ds = sprintf("%04d-%02d-%02d", $y, $m, $d);
-                            $att = $g['records'][$ds] ?? null;
-                            $is_weekend = date('w', strtotime($ds)) == 0;
-                        ?>
-                        <td class="text-center py-1.5 px-1 <?= $is_weekend?'bg-red-50':'' ?>">
-                            <?php if ($att): ?>
-                            <span class="inline-block w-5 h-5 rounded-full text-[9px] font-bold flex items-center justify-center mx-auto
-                                <?= $att['status']=='present'?'bg-green-100 text-green-700':($att['status']=='absent'?'bg-red-100 text-red-700':($att['status']=='late'?'bg-amber-100 text-amber-700':($att['status']=='half-day'?'bg-blue-100 text-blue-700':'bg-gray-100 text-gray-600'))) ?>">
-                                <?= strtoupper(substr($att['status'], 0, 1)) ?>
-                            </span>
-                            <?php elseif (!$is_weekend): ?>
-                            <span class="text-gray-300">—</span>
-                            <?php endif; ?>
-                        </td>
-                        <?php endfor; ?>
+                        <td class="text-center py-1.5 px-2 text-gray-700"><?= $total ?></td>
                         <td class="text-center py-1.5 px-2 font-bold text-green-700 bg-green-50/50"><?= $g['summary']['present'] ?></td>
                         <td class="text-center py-1.5 px-2 font-bold text-red-700 bg-red-50/50"><?= $g['summary']['absent'] ?></td>
-                        <td class="text-center py-1.5 px-2 font-bold text-amber-700 bg-amber-50/50"><?= $g['summary']['late'] + $g['summary']['half-day'] ?></td>
+                        <td class="text-center py-1.5 px-2 font-bold text-amber-700 bg-amber-50/50"><?= $g['summary']['late'] ?></td>
+                        <td class="text-center py-1.5 px-2 font-bold text-blue-700 bg-blue-50/50"><?= $g['summary']['half-day'] ?></td>
+                        <td class="text-center py-1.5 px-2 font-bold <?= $color ?>"><?= $pct ?>%</td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>

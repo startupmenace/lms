@@ -9,7 +9,7 @@ $tab = $_GET['tab'] ?? 'details';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
-    if ($action === 'add_account') {
+    if ($action === 'add_account' && has_role('admin')) {
         $full_name = trim($_POST['full_name'] ?? '');
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? 'password';
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('?tab=accounts');
     }
 
-    if ($action === 'edit_account') {
+    if ($action === 'edit_account' && has_role('admin')) {
         $id = (int)$_POST['id'];
         $full_name = trim($_POST['full_name'] ?? '');
         $email = trim($_POST['email'] ?? '');
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('?tab=accounts');
     }
 
-    if ($action === 'delete_account') {
+    if ($action === 'delete_account' && has_role('admin')) {
         $id = (int)$_POST['id'];
         if ($id === get_user_id()) {
             set_flash('error', 'You cannot delete your own account');
