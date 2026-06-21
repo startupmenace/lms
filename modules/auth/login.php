@@ -34,141 +34,151 @@ $page_title = 'Login';
         .loader-content { text-align: center; }
         .loader-content p { font-family: 'Inter', system-ui, sans-serif; }
 
-        /* ─── Book Animation ─── */
+        /* ─── Book Animation (Aaron Iker) ─── */
         .book {
-            position: relative;
-            width: 96px; height: 124px;
-            margin: 0 auto 28px;
-            perspective: 600px;
+            --color: #0d9488;
+            --duration: 4.2s;
+            width: 32px; height: 12px;
+            position: relative; margin: 48px auto 36px;
+            zoom: 2;
         }
-        .book-inner {
-            position: relative; width: 100%; height: 100%;
-            transform-style: preserve-3d;
-            animation: bookFloat 2.6s ease-in-out infinite;
+        .book .inner {
+            width: 32px; height: 12px; position: relative;
+            transform-origin: 2px 2px; transform: rotateZ(-90deg);
+            animation: book var(--duration) ease infinite;
         }
-        @keyframes bookFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-6px); }
+        .book .inner .left,
+        .book .inner .right {
+            width: 60px; height: 4px; top: 0; border-radius: 2px;
+            background: var(--color); position: absolute;
         }
+        .book .inner .left:before,
+        .book .inner .right:before {
+            content: ''; width: 48px; height: 4px; border-radius: 2px;
+            background: inherit; position: absolute; top: -10px; left: 6px;
+        }
+        .book .inner .left {
+            right: 28px; transform-origin: 58px 2px; transform: rotateZ(90deg);
+            animation: left var(--duration) ease infinite;
+        }
+        .book .inner .right {
+            left: 28px; transform-origin: 2px 2px; transform: rotateZ(-90deg);
+            animation: right var(--duration) ease infinite;
+        }
+        .book .inner .middle {
+            width: 32px; height: 12px; border: 4px solid var(--color);
+            border-top: 0; border-radius: 0 0 9px 9px; transform: translateY(2px);
+        }
+        .book ul {
+            margin: 0; padding: 0; list-style: none;
+            position: absolute; left: 50%; top: 0;
+        }
+        .book ul li {
+            height: 4px; border-radius: 2px; transform-origin: 100% 2px;
+            width: 48px; right: 0; top: -10px; position: absolute;
+            background: var(--color);
+            transform: rotateZ(0deg) translateX(-18px);
+            animation-duration: var(--duration);
+            animation-timing-function: ease;
+            animation-iteration-count: infinite;
+        }
+        .book ul li:nth-child(1)  { animation-name: page-0; }
+        .book ul li:nth-child(2)  { animation-name: page-1; }
+        .book ul li:nth-child(3)  { animation-name: page-2; }
+        .book ul li:nth-child(4)  { animation-name: page-3; }
+        .book ul li:nth-child(5)  { animation-name: page-4; }
+        .book ul li:nth-child(6)  { animation-name: page-5; }
+        .book ul li:nth-child(7)  { animation-name: page-6; }
+        .book ul li:nth-child(8)  { animation-name: page-7; }
+        .book ul li:nth-child(9)  { animation-name: page-8; }
+        .book ul li:nth-child(10) { animation-name: page-9; }
+        .book ul li:nth-child(11) { animation-name: page-10; }
+        .book ul li:nth-child(12) { animation-name: page-11; }
+        .book ul li:nth-child(13) { animation-name: page-12; }
+        .book ul li:nth-child(14) { animation-name: page-13; }
+        .book ul li:nth-child(15) { animation-name: page-14; }
+        .book ul li:nth-child(16) { animation-name: page-15; }
+        .book ul li:nth-child(17) { animation-name: page-16; }
+        .book ul li:nth-child(18) { animation-name: page-17; }
+        .book ul li:nth-child(19) { animation-name: page-18; }
 
-        /* Cover */
-        .book-cover {
-            position: absolute; inset: 0;
-            background: linear-gradient(165deg, #0d9488 0%, #0f766e 100%);
-            border-radius: 3px 10px 10px 3px;
-            box-shadow: 0 8px 28px rgba(13, 148, 136, 0.3);
-        }
-        /* Spine */
-        .book-cover::before {
-            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 14px;
-            background: linear-gradient(180deg, #115e59, #0f766e);
-            border-radius: 3px 0 0 3px;
-        }
-        /* Spine highlight */
-        .book-cover::after {
-            content: ''; position: absolute; left: 11px; top: 5px; bottom: 5px; width: 2px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 1px;
-        }
-        .book-cover .band {
-            position: absolute; left: 18px; right: 4px; height: 4px;
-            background: rgba(255,255,255,0.06);
-            border-radius: 1px;
-        }
-        .book-cover .band.t { top: 20px; }
-        .book-cover .band.b { bottom: 20px; }
+        @keyframes page-0  { 4%   { transform: rotateZ(0deg) translateX(-18px); } 13%, 54%  { transform: rotateZ(180deg) translateX(-18px); } 63%  { transform: rotateZ(0deg) translateX(-18px); } }
+        @keyframes page-1  { 5.86%  { transform: rotateZ(0deg) translateX(-18px); } 14.74%, 55.86%  { transform: rotateZ(180deg) translateX(-18px); } 64.74%  { transform: rotateZ(0deg) translateX(-18px); } }
+        @keyframes page-2  { 7.72%  { transform: rotateZ(0deg) translateX(-18px); } 16.48%, 57.72%  { transform: rotateZ(180deg) translateX(-18px); } 66.48%  { transform: rotateZ(0deg) translateX(-18px); } }
+        @keyframes page-3  { 9.58%  { transform: rotateZ(0deg) translateX(-18px); } 18.22%, 59.58%  { transform: rotateZ(180deg) translateX(-18px); } 68.22%  { transform: rotateZ(0deg) translateX(-18px); } }
+        @keyframes page-4  { 11.44% { transform: rotateZ(0deg) translateX(-18px); } 19.96%, 61.44% { transform: rotateZ(180deg) translateX(-18px); } 69.96% { transform: rotateZ(0deg) translateX(-18px); } }
+        @keyframes page-5  { 13.3%  { transform: rotateZ(0deg) translateX(-18px); } 21.7%, 63.3%   { transform: rotateZ(180deg) translateX(-18px); } 71.7%  { transform: rotateZ(0deg) translateX(-18px); } }
+        @keyframes page-6  { 15.16% { transform: rotateZ(0deg) translateX(-18px); } 23.44%, 65.16% { transform: rotateZ(180deg) translateX(-18px); } 73.44% { transform: rotateZ(0deg) translateX(-18px); } }
+        @keyframes page-7  { 17.02% { transform: rotateZ(0deg) translateX(-18px); } 25.18%, 67.02% { transform: rotateZ(180deg) translateX(-18px); } 75.18% { transform: rotateZ(0deg) translateX(-18px); } }
+        @keyframes page-8  { 18.88% { transform: rotateZ(0deg) translateX(-18px); } 26.92%, 68.88% { transform: rotateZ(180deg) translateX(-18px); } 76.92% { transform: rotateZ(0deg) translateX(-18px); } }
+        @keyframes page-9  { 20.74% { transform: rotateZ(0deg) translateX(-18px); } 28.66%, 70.74% { transform: rotateZ(180deg) translateX(-18px); } 78.66% { transform: rotateZ(0deg) translateX(-18px); } }
+        @keyframes page-10 { 22.6%  { transform: rotateZ(0deg) translateX(-18px); } 30.4%, 72.6%   { transform: rotateZ(180deg) translateX(-18px); } 80.4%  { transform: rotateZ(0deg) translateX(-18px); } }
+        @keyframes page-11 { 24.46% { transform: rotateZ(0deg) translateX(-18px); } 32.14%, 74.46% { transform: rotateZ(180deg) translateX(-18px); } 82.14% { transform: rotateZ(0deg) translateX(-18px); } }
+        @keyframes page-12 { 26.32% { transform: rotateZ(0deg) translateX(-18px); } 33.88%, 76.32% { transform: rotateZ(180deg) translateX(-18px); } 83.88% { transform: rotateZ(0deg) translateX(-18px); } }
+        @keyframes page-13 { 28.18% { transform: rotateZ(0deg) translateX(-18px); } 35.62%, 78.18% { transform: rotateZ(180deg) translateX(-18px); } 85.62% { transform: rotateZ(0deg) translateX(-18px); } }
+        @keyframes page-14 { 30.04% { transform: rotateZ(0deg) translateX(-18px); } 37.36%, 80.04% { transform: rotateZ(180deg) translateX(-18px); } 87.36% { transform: rotateZ(0deg) translateX(-18px); } }
+        @keyframes page-15 { 31.9%  { transform: rotateZ(0deg) translateX(-18px); } 39.1%, 81.9%   { transform: rotateZ(180deg) translateX(-18px); } 89.1%  { transform: rotateZ(0deg) translateX(-18px); } }
+        @keyframes page-16 { 33.76% { transform: rotateZ(0deg) translateX(-18px); } 40.84%, 83.76% { transform: rotateZ(180deg) translateX(-18px); } 90.84% { transform: rotateZ(0deg) translateX(-18px); } }
+        @keyframes page-17 { 35.62% { transform: rotateZ(0deg) translateX(-18px); } 42.58%, 85.62% { transform: rotateZ(180deg) translateX(-18px); } 92.58% { transform: rotateZ(0deg) translateX(-18px); } }
+        @keyframes page-18 { 37.48% { transform: rotateZ(0deg) translateX(-18px); } 44.32%, 87.48% { transform: rotateZ(180deg) translateX(-18px); } 94.32% { transform: rotateZ(0deg) translateX(-18px); } }
 
-        /* Pages — stacked thinner strips fanning in sequence */
-        .page {
-            position: absolute; top: 5px; bottom: 5px;
-            width: 36px;
-            background: linear-gradient(to bottom, #ffffff, #f1f5f9);
-            border-radius: 1px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-            transform-origin: right center;
-            backface-visibility: hidden;
+        @keyframes left {
+            4%   { transform: rotateZ(90deg); }
+            10%, 40%  { transform: rotateZ(0deg); }
+            46%, 54%  { transform: rotateZ(90deg); }
+            60%, 90%  { transform: rotateZ(0deg); }
+            96%  { transform: rotateZ(90deg); }
         }
-        .page.l {
-            left: 16px;
-            border-right: 1px solid #e2e8f0;
+        @keyframes right {
+            4%   { transform: rotateZ(-90deg); }
+            10%, 40%  { transform: rotateZ(0deg); }
+            46%, 54%  { transform: rotateZ(-90deg); }
+            60%, 90%  { transform: rotateZ(0deg); }
+            96%  { transform: rotateZ(-90deg); }
         }
-        .page.r {
-            left: 44px;
-            border-left: 1px solid #e2e8f0;
-            transform-origin: left center;
-        }
-
-        /* Cascade 5 layers on each side */
-        .page.l:nth-child(1) { z-index: 6; animation: fanL 2.4s ease-in-out -0.5s infinite; }
-        .page.l:nth-child(2) { z-index: 5; animation: fanL 2.4s ease-in-out -0.35s infinite; }
-        .page.l:nth-child(3) { z-index: 4; animation: fanL 2.4s ease-in-out -0.2s infinite; }
-        .page.l:nth-child(4) { z-index: 3; animation: fanL 2.4s ease-in-out -0.05s infinite; }
-        .page.l:nth-child(5) { z-index: 2; animation: fanL 2.4s ease-in-out 0.1s infinite; }
-
-        .page.r:nth-child(6) { z-index: 6; animation: fanR 2.4s ease-in-out -0.5s infinite; }
-        .page.r:nth-child(7) { z-index: 5; animation: fanR 2.4s ease-in-out -0.35s infinite; }
-        .page.r:nth-child(8) { z-index: 4; animation: fanR 2.4s ease-in-out -0.2s infinite; }
-        .page.r:nth-child(9) { z-index: 3; animation: fanR 2.4s ease-in-out -0.05s infinite; }
-        .page.r:nth-child(10){ z-index: 2; animation: fanR 2.4s ease-in-out 0.1s infinite; }
-
-        /* Text lines on innermost pages only */
-        .page.l:nth-child(3)::after, .page.r:nth-child(8)::after {
-            content: ''; position: absolute; left: 6px; right: 6px; top: 14px; height: 16px;
-            background: repeating-linear-gradient(180deg, #cbd5e1 0, #cbd5e1 1px, transparent 1px, transparent 6px);
-            opacity: 0.4;
-        }
-
-        @keyframes fanL {
-            0%, 100% { transform: rotateY(0deg) translateZ(0); }
-            25% { transform: rotateY(-110deg) translateZ(1px); }
-            50% { transform: rotateY(-110deg) translateZ(1px); }
-            75% { transform: rotateY(0deg) translateZ(0); }
-        }
-        @keyframes fanR {
-            0%, 100% { transform: rotateY(0deg) translateZ(0); }
-            25% { transform: rotateY(110deg) translateZ(1px); }
-            50% { transform: rotateY(110deg) translateZ(1px); }
-            75% { transform: rotateY(0deg) translateZ(0); }
+        @keyframes book {
+            4%   { transform: rotateZ(-90deg); }
+            10%, 40%  { transform: rotateZ(0deg); transform-origin: 2px 2px; }
+            40.01%, 59.99% { transform-origin: 30px 2px; }
+            46%, 54%  { transform: rotateZ(90deg); }
+            60%, 90%  { transform: rotateZ(0deg); transform-origin: 2px 2px; }
+            96%  { transform: rotateZ(-90deg); }
         }
 
         /* ─── Loading Text ─── */
         .loader-msg {
-            font-size: 1.05rem; font-weight: 500; color: #0d9488;
-            min-height: 1.6em;
-            transition: opacity 0.35s ease;
+            font-size: 1rem; font-weight: 500; color: #0d9488;
+            min-height: 1.6em; transition: opacity 0.35s ease;
         }
         .loader-msg .dots::after {
-            content: ''; display: inline-block; width: 1.2em; text-align: left;
-            animation: dotAnim 1.5s steps(3, end) infinite;
+            content: '...';
+            animation: dotAnim 1.5s steps(4, end) infinite;
         }
         @keyframes dotAnim {
-            0% { content: ''; }
-            33% { content: '.'; }
-            66% { content: '..'; }
-            100% { content: '...'; }
+            0%   { content: ''; }
+            25%  { content: '.'; }
+            50%  { content: '..'; }
+            75%  { content: '...'; }
         }
-        .loader-msg .dots::after { content: '...'; animation: dotAnim 1.5s steps(4, end) infinite; }
 
         .loader-sub {
-            font-size: 0.8rem; color: #94a3b8; margin-top: 6px;
+            font-size: 0.8rem; color: #94a3b8; margin-top: 8px;
         }
 
         /* ─── Loading bar ─── */
         .loader-bar-wrap {
-            width: 180px; height: 3px; margin: 20px auto 0;
+            width: 180px; height: 3px; margin: 24px auto 0;
             background: #e2e8f0; border-radius: 4px; overflow: hidden;
         }
         .loader-bar-fill {
             height: 100%; width: 0%;
             background: linear-gradient(90deg, #0d9488, #14b8a6);
             border-radius: 4px;
-            animation: barGrow 2.8s ease-in-out infinite;
+            animation: barGrow 4.2s ease-in-out infinite;
         }
         @keyframes barGrow {
-            0% { width: 0%; }
-            25% { width: 30%; }
-            50% { width: 65%; }
-            75% { width: 85%; }
+            0%   { width: 0%; }
+            45%  { width: 80%; }
             100% { width: 100%; }
         }
     </style>
@@ -179,22 +189,17 @@ $page_title = 'Login';
     <div id="loader-screen">
         <div class="loader-content">
             <div class="book">
-                <div class="book-inner">
-                    <div class="book-cover">
-                        <div class="band t"></div>
-                        <div class="band b"></div>
-                    </div>
-                    <div class="page l"></div>
-                    <div class="page l"></div>
-                    <div class="page l"></div>
-                    <div class="page l"></div>
-                    <div class="page l"></div>
-                    <div class="page r"></div>
-                    <div class="page r"></div>
-                    <div class="page r"></div>
-                    <div class="page r"></div>
-                    <div class="page r"></div>
+                <div class="inner">
+                    <div class="left"></div>
+                    <div class="middle"></div>
+                    <div class="right"></div>
                 </div>
+                <ul>
+                    <li></li><li></li><li></li><li></li><li></li>
+                    <li></li><li></li><li></li><li></li><li></li>
+                    <li></li><li></li><li></li><li></li><li></li>
+                    <li></li><li></li><li></li><li></li>
+                </ul>
             </div>
             <p class="loader-msg"><span id="loader-text">Getting learner records</span><span class="dots"></span></p>
             <p class="loader-sub">Ziada LMS</p>
@@ -282,7 +287,6 @@ $page_title = 'Login';
             }, 200);
         }, 900);
 
-        // Fade out loader after messages complete
         const totalDuration = messages.length * 900 + 1200;
         setTimeout(() => {
             clearInterval(interval);
