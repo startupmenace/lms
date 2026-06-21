@@ -37,7 +37,7 @@ $page_title = 'Login';
         /* ─── Book Animation (Aaron Iker) ─── */
         .book {
             --color: #0d9488;
-            --duration: 4.2s;
+            --duration: 3s;
             width: 32px; height: 12px;
             position: relative; margin: 48px auto 36px;
             zoom: 2;
@@ -46,11 +46,13 @@ $page_title = 'Login';
             width: 32px; height: 12px; position: relative;
             transform-origin: 2px 2px; transform: rotateZ(-90deg);
             animation: book var(--duration) ease infinite;
+            backface-visibility: hidden;
         }
         .book .inner .left,
         .book .inner .right {
             width: 60px; height: 4px; top: 0; border-radius: 2px;
             background: var(--color); position: absolute;
+            backface-visibility: hidden;
         }
         .book .inner .left:before,
         .book .inner .right:before {
@@ -60,10 +62,12 @@ $page_title = 'Login';
         .book .inner .left {
             right: 28px; transform-origin: 58px 2px; transform: rotateZ(90deg);
             animation: left var(--duration) ease infinite;
+            backface-visibility: hidden;
         }
         .book .inner .right {
             left: 28px; transform-origin: 2px 2px; transform: rotateZ(-90deg);
             animation: right var(--duration) ease infinite;
+            backface-visibility: hidden;
         }
         .book .inner .middle {
             width: 32px; height: 12px; border: 4px solid var(--color);
@@ -123,6 +127,7 @@ $page_title = 'Login';
         @keyframes page-18 { 37.48% { transform: rotateZ(0deg) translateX(-18px); } 44.32%, 87.48% { transform: rotateZ(180deg) translateX(-18px); } 94.32% { transform: rotateZ(0deg) translateX(-18px); } }
 
         @keyframes left {
+            0%, 100% { transform: rotateZ(90deg); }
             4%   { transform: rotateZ(90deg); }
             10%, 40%  { transform: rotateZ(0deg); }
             46%, 54%  { transform: rotateZ(90deg); }
@@ -130,6 +135,7 @@ $page_title = 'Login';
             96%  { transform: rotateZ(90deg); }
         }
         @keyframes right {
+            0%, 100% { transform: rotateZ(-90deg); }
             4%   { transform: rotateZ(-90deg); }
             10%, 40%  { transform: rotateZ(0deg); }
             46%, 54%  { transform: rotateZ(-90deg); }
@@ -137,12 +143,13 @@ $page_title = 'Login';
             96%  { transform: rotateZ(-90deg); }
         }
         @keyframes book {
-            4%   { transform: rotateZ(-90deg); }
+            0%, 100% { transform: rotateZ(-90deg); transform-origin: 2px 2px; }
+            4%   { transform: rotateZ(-90deg); transform-origin: 2px 2px; }
             10%, 40%  { transform: rotateZ(0deg); transform-origin: 2px 2px; }
             40.01%, 59.99% { transform-origin: 30px 2px; }
             46%, 54%  { transform: rotateZ(90deg); }
             60%, 90%  { transform: rotateZ(0deg); transform-origin: 2px 2px; }
-            96%  { transform: rotateZ(-90deg); }
+            96%  { transform: rotateZ(-90deg); transform-origin: 2px 2px; }
         }
 
         /* ─── Loading Text ─── */
@@ -174,11 +181,11 @@ $page_title = 'Login';
             height: 100%; width: 0%;
             background: linear-gradient(90deg, #0d9488, #14b8a6);
             border-radius: 4px;
-            animation: barGrow 4.2s ease-in-out infinite;
+            animation: barGrow 3s ease-in-out infinite;
         }
         @keyframes barGrow {
             0%   { width: 0%; }
-            45%  { width: 80%; }
+            50%  { width: 85%; }
             100% { width: 100%; }
         }
     </style>
@@ -271,9 +278,7 @@ $page_title = 'Login';
             'Loading class schedules',
             'Preparing attendance logs',
             'Fetching academic reports',
-            'Warming up the chat',
-            'Organizing homework',
-            'Calibrating timetables'
+            'Organizing homework'
         ];
 
         let idx = 0;
@@ -285,9 +290,9 @@ $page_title = 'Login';
                 el.textContent = messages[idx];
                 el.style.opacity = '1';
             }, 200);
-        }, 900);
+        }, 700);
 
-        const totalDuration = messages.length * 900 + 1200;
+        const totalDuration = messages.length * 700 + 1000;
         setTimeout(() => {
             clearInterval(interval);
             document.getElementById('loader-screen').classList.add('hidden');
