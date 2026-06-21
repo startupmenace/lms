@@ -59,7 +59,10 @@ function get_sidebar_class($module) {
 
 function get_avatar($name, $photo = null, $subdir = 'avatars') {
     if ($photo) {
-        return '<img src="' . upload_url($photo, $subdir) . '" alt="' . sanitize($name) . '" class="w-full h-full object-cover rounded-full">';
+        $path = get_upload_base() . '/' . $subdir . '/' . $photo;
+        if (file_exists($path)) {
+            return '<img src="' . upload_url($photo, $subdir) . '" alt="' . sanitize($name) . '" class="w-full h-full object-cover rounded-full">';
+        }
     }
     $initials = '';
     $parts = explode(' ', $name);
