@@ -12,6 +12,15 @@
  *   - super_admins : platform-level admin accounts
  */
 
+// ── Check if router DB exists ────────────────────────
+function router_db_exists() {
+    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, '', DB_PORT);
+    if ($conn->connect_error) return false;
+    $exists = $conn->select_db('teachbetter_router');
+    $conn->close();
+    return $exists;
+}
+
 // ── Router DB connection ──────────────────────────────
 function router_db_connect() {
     $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, '', DB_PORT);

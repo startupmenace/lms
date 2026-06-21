@@ -7,6 +7,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) 
     if (!$edit_vehicle) $show_form = false;
 }
 
+$drivers_list = db_get_all("SELECT id, name, phone, status FROM transport_drivers WHERE status='active' ORDER BY name");
 $vehicles = db_get_all("SELECT v.*, d.name as driver_name,
     (SELECT COUNT(*) FROM transport_routes WHERE vehicle_id=v.id AND status='active') as active_routes
     FROM transport_vehicles v
@@ -71,6 +72,17 @@ $vehicles = db_get_all("SELECT v.*, d.name as driver_name,
             <input type="date" name="last_maintenance" value="<?= $edit_vehicle['last_maintenance'] ?? '' ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
         </div>
         <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Assigned Driver</label>
+            <select name="driver_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                <option value="">— Unassigned —</option>
+                <?php foreach ($drivers_list as $dr): ?>
+                <option value="<?= $dr['id'] ?>" <?= ($edit_vehicle['driver_id'] ?? '') == $dr['id'] ? 'selected' : '' ?>>
+                    <?= sanitize($dr['name']) ?> — <?= sanitize($dr['phone'] ?? '') ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div>
             <label class="block text-xs font-bold text-gray-700 mb-1">Status</label>
             <select name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
                 <?php foreach (['active', 'maintenance', 'inactive'] as $s): ?>
@@ -105,6 +117,7 @@ $vehicles = db_get_all("SELECT v.*, d.name as driver_name,
                 <th class="text-left py-3 px-3 font-bold text-gray-700 uppercase tracking-wider text-[10px]">Vehicle</th>
                 <th class="text-left py-3 px-3 font-bold text-gray-700 uppercase tracking-wider text-[10px] hidden sm:table-cell">Type / Model</th>
                 <th class="text-center py-3 px-3 font-bold text-gray-700 uppercase tracking-wider text-[10px] hidden md:table-cell">Capacity</th>
+                <th class="text-left py-3 px-3 font-bold text-gray-700 uppercase tracking-wider text-[10px] hidden lg:table-cell">Driver</th>
                 <th class="text-center py-3 px-3 font-bold text-gray-700 uppercase tracking-wider text-[10px] hidden lg:table-cell">Insurance</th>
                 <th class="text-center py-3 px-3 font-bold text-gray-700 uppercase tracking-wider text-[10px]">Status</th>
                 <th class="text-right py-3 px-3 font-bold text-gray-700 uppercase tracking-wider text-[10px]">Actions</th>
@@ -130,6 +143,13 @@ $vehicles = db_get_all("SELECT v.*, d.name as driver_name,
                     <?php if ($v['model']): ?>· <?= sanitize($v['model']) ?><?php endif; ?>
                 </td>
                 <td class="py-3 px-3 text-center text-gray-700 hidden md:table-cell"><?= $v['capacity'] ?> seats</td>
+                <td class="py-3 px-3 text-gray-700 hidden lg:table-cell text-xs">
+                    <?php if ($v['driver_name']): ?>
+                    <span class="font-medium text-gray-900"><?= sanitize($v['driver_name']) ?></span>
+                    <?php else: ?>
+                    <span class="text-gray-400">—</span>
+                    <?php endif; ?>
+                </td>
                 <td class="py-3 px-3 text-center <?= $insurance_color ?> hidden lg:table-cell text-xs">
                     <?= $v['insurance_expiry'] ? format_date($v['insurance_expiry']) : '—' ?>
                 </td>

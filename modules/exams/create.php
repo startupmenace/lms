@@ -24,10 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
         if ($exam_id) {
             foreach ($subject_ids as $sid) {
-                $max_marks = (int)($_POST['max_marks_' . $sid] ?? 100);
-                $pass_marks = (int)($_POST['pass_marks_' . $sid] ?? 33);
-                db_insert("INSERT INTO exam_subjects (exam_id, subject_id, max_marks, pass_marks) VALUES (?, ?, ?, ?)",
-                    [$exam_id, (int)$sid, $max_marks, $pass_marks]);
+                db_insert("INSERT INTO exam_subjects (exam_id, subject_id, max_marks, pass_marks) VALUES (?, ?, 100, 33)",
+                    [$exam_id, (int)$sid]);
             }
             set_flash('success', 'Exam scheduled successfully!');
             redirect('index.php?class_id=' . $class_id);
@@ -78,15 +76,16 @@ include __DIR__ . '/../../includes/header.php';
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Subjects</label>
-                <div class="border border-gray-300 rounded-lg p-4 space-y-3">
+                <div class="border border-gray-300 rounded-lg p-4">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2">
                     <?php foreach ($subjects as $sub): ?>
-                    <div class="flex items-center gap-3">
-                        <input type="checkbox" name="subject_ids[]" value="<?= $sub['id'] ?>" class="rounded text-teal-600 focus:ring-teal-500">
-                        <span class="text-sm text-gray-700 w-32"><?= sanitize($sub['name']) ?></span>
-                        <input type="number" name="max_marks_<?= $sub['id'] ?>" placeholder="Max Marks" value="100" class="w-24 border border-gray-200 rounded px-2 py-1 text-xs">
-                        <input type="number" name="pass_marks_<?= $sub['id'] ?>" placeholder="Pass Marks" value="33" class="w-24 border border-gray-200 rounded px-2 py-1 text-xs">
-                    </div>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-teal-600 text-sm text-gray-700">
+                            <input type="checkbox" name="subject_ids[]" value="<?= $sub['id'] ?>" checked class="rounded text-teal-600 focus:ring-teal-500">
+                            <?= sanitize($sub['name']) ?>
+                        </label>
                     <?php endforeach; ?>
+                    </div>
+                    <input type="hidden" name="default_marks" value="1">
                 </div>
             </div>
 

@@ -10,22 +10,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
     if ($action === 'add_vehicle') {
-        db_insert("INSERT INTO transport_vehicles (vehicle_number,vehicle_type,capacity,model,year,fuel_type,insurance_expiry,last_maintenance,status,notes,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?)", [
+        db_insert("INSERT INTO transport_vehicles (vehicle_number,vehicle_type,capacity,model,year,fuel_type,insurance_expiry,last_maintenance,driver_id,status,notes,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", [
             $_POST['vehicle_number'], $_POST['vehicle_type'], (int)$_POST['capacity'],
             $_POST['model'] ?? null, (int)($_POST['year'] ?? 0) ?: null,
             $_POST['fuel_type'] ?? 'diesel',
             $_POST['insurance_expiry'] ?: null, $_POST['last_maintenance'] ?: null,
+            (int)($_POST['driver_id'] ?? 0) ?: null,
             $_POST['status'] ?? 'active', $_POST['notes'] ?? null, get_user_id()
         ]);
         set_flash('success', 'Vehicle added successfully');
         redirect('?tab=vehicles');
     }
     if ($action === 'edit_vehicle') {
-        db_query("UPDATE transport_vehicles SET vehicle_number=?,vehicle_type=?,capacity=?,model=?,year=?,fuel_type=?,insurance_expiry=?,last_maintenance=?,status=?,notes=? WHERE id=?", [
+        db_query("UPDATE transport_vehicles SET vehicle_number=?,vehicle_type=?,capacity=?,model=?,year=?,fuel_type=?,insurance_expiry=?,last_maintenance=?,driver_id=?,status=?,notes=? WHERE id=?", [
             $_POST['vehicle_number'], $_POST['vehicle_type'], (int)$_POST['capacity'],
             $_POST['model'] ?? null, (int)($_POST['year'] ?? 0) ?: null,
             $_POST['fuel_type'] ?? 'diesel',
             $_POST['insurance_expiry'] ?: null, $_POST['last_maintenance'] ?: null,
+            (int)($_POST['driver_id'] ?? 0) ?: null,
             $_POST['status'] ?? 'active', $_POST['notes'] ?? null, (int)$_POST['id']
         ]);
         set_flash('success', 'Vehicle updated');
