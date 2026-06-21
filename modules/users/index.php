@@ -9,6 +9,20 @@ $tab = $_GET['tab'] ?? 'all';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
+    if ($action === 'create' || $action === 'edit' || $action === 'delete' || $action === 'toggle_status') {
+        if (!can_manage_module('users')) {
+            set_flash('error', 'You do not have permission to manage users.');
+            redirect('?tab=all');
+        }
+    }
+
+    if ($action === 'create_role' || $action === 'save_permissions' || $action === 'delete_role') {
+        if (!can_manage_module('users')) {
+            set_flash('error', 'You do not have permission to manage roles.');
+            redirect('?tab=roles');
+        }
+    }
+
     if ($action === 'create') {
         $full_name = sanitize($_POST['full_name']);
         $email = sanitize($_POST['email']);
@@ -110,9 +124,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'save_permissions') {
         $role_id = (int)$_POST['role_id'];
         db_query("DELETE FROM role_permissions WHERE role_id=?", [$role_id]);
-        $modules = $_POST['modules'] ?? [];
-        foreach ($modules as $mod) {
-            db_insert("INSERT INTO role_permissions (role_id, module, can_view) VALUES (?,?,1)", [$role_id, $mod]);
+        $view_modules = $_POST['view'] ?? [];
+        $manage_modules = $_POST['manage'] ?? [];
+        $all_modules = array_unique(array_merge($view_modules, $manage_modules));
+        foreach ($all_modules as $mod) {
+            $can_view = in_array($mod, $view_modules) ? 1 : 0;
+            $can_manage = in_array($mod, $manage_modules) ? 1 : 0;
+            db_insert("INSERT INTO role_permissions (role_id, module, can_view, can_manage) VALUES (?,?,?,?)", [$role_id, $mod, $can_view, $can_manage]);
         }
         // Clear cached permissions for all users with this role
         $role_name = db_get_row("SELECT name FROM roles WHERE id=?", [$role_id])['name'] ?? '';

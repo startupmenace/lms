@@ -2,6 +2,10 @@
 require_once __DIR__ . '/../../includes/session.php';
 require_once __DIR__ . '/../../includes/functions.php';
 
+if (is_logged_in()) {
+    redirect(get_user_dashboard());
+}
+
 $page_title = 'Login';
 ?>
 <!DOCTYPE html>

@@ -64,35 +64,55 @@ function logout() {
 
 function get_role_permissions() {
     $role = get_user_role();
-    if (empty($role)) return [];
+    if (empty($role)) return ['modules' => [], 'manage_modules' => []];
     if (isset($_SESSION['_perms']) && $_SESSION['_perms']['role'] === $role) {
-        return $_SESSION['_perms']['modules'];
+        return $_SESSION['_perms'];
     }
     if ($role === 'admin') {
-        $modules = ['*'];
-        $_SESSION['_perms'] = ['role' => $role, 'modules' => $modules];
-        return $modules;
+        $result = ['role' => $role, 'modules' => ['*'], 'manage_modules' => ['*']];
+        $_SESSION['_perms'] = $result;
+        return $result;
     }
     $rows = db_get_all(
-        "SELECT rp.module FROM role_permissions rp
+        "SELECT rp.module, rp.can_manage FROM role_permissions rp
          JOIN roles r ON rp.role_id = r.id
          WHERE r.name = ? AND rp.can_view = 1",
         [$role]
     );
     $modules = array_column($rows, 'module');
-    $_SESSION['_perms'] = ['role' => $role, 'modules' => $modules];
-    return $modules;
+    $manage = [];
+    foreach ($rows as $r) {
+        if ($r['can_manage']) $manage[] = $r['module'];
+    }
+    $result = ['role' => $role, 'modules' => $modules, 'manage_modules' => $manage];
+    $_SESSION['_perms'] = $result;
+    return $result;
 }
 
 function has_module_access($module) {
     $perms = get_role_permissions();
-    return in_array('*', $perms) || in_array($module, $perms);
+    return in_array('*', $perms['modules']) || in_array($module, $perms['modules']);
 }
 
-function require_module_access($module) {
+function can_manage_module($module) {
+    $perms = get_role_permissions();
+    return in_array('*', $perms['manage_modules']) || in_array($module, $perms['manage_modules']);
+}
+
+function require_module_access($module, $level = 'view') {
     require_login();
-    if (!has_module_access($module)) {
-        header('Location: ' . get_user_dashboard());
+    $has = $level === 'manage' ? can_manage_module($module) : has_module_access($module);
+    if (!$has) {
+        $dest = get_user_dashboard();
+        // Avoid redirect loop — if already at the dashboard URL, show error instead
+        $current = strtok($_SERVER['REQUEST_URI'] ?? '', '?');
+        $dest_path = parse_url($dest, PHP_URL_PATH);
+        if ($dest_path && $current && strpos($current, $dest_path) !== false) {
+            http_response_code(403);
+            echo '<html><head><title>Access Denied</title><style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f9fafb;color:#374151;text-align:center;padding:2rem}</style></head><body><div><h1 style="font-size:2rem;color:#dc2626;margin-bottom:.5rem">Access Denied</h1><p>You don\'t have permission to access this module.</p><p style="margin-top:1.5rem"><a href="' . BASE_URL . '/modules/auth/logout.php" style="color:#14b8a6">Logout</a></p></div></body></html>';
+            exit;
+        }
+        header('Location: ' . $dest);
         exit;
     }
 }

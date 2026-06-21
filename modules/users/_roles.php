@@ -77,16 +77,24 @@ $all_modules = [
             <p class="text-sm">Select a role to manage its permissions</p>
         </div>
         <?php else:
-            $current_perms = db_get_all("SELECT module FROM role_permissions WHERE role_id=? AND can_view=1", [$selected_role['id']]);
-            $current_modules = array_column($current_perms, 'module');
+            $current_perms = db_get_all("SELECT module, can_view, can_manage FROM role_permissions WHERE role_id=?", [$selected_role['id']]);
+            $view_map = [];
+            $manage_map = [];
+            foreach ($current_perms as $p) {
+                $view_map[$p['module']] = $p['can_view'];
+                $manage_map[$p['module']] = $p['can_manage'];
+            }
         ?>
         <div class="flex items-center justify-between mb-4">
             <h3 class="font-bold text-gray-900 text-sm">
                 <i class="fas fa-lock-open text-teal-600 mr-1"></i>
                 Permissions: <span class="text-teal-700"><?= ucfirst(sanitize($selected_role['name'])) ?></span>
             </h3>
-            <button type="button" onclick="selectAll(true)" class="text-xs text-teal-600 hover:text-teal-800 mr-2">Select All</button>
-            <button type="button" onclick="selectAll(false)" class="text-xs text-gray-500 hover:text-gray-700">Clear All</button>
+            <div class="flex gap-2">
+                <button type="button" onclick="selectAll(true)" class="text-xs text-teal-600 hover:text-teal-800">Select All View</button>
+                <button type="button" onclick="selectAllManage(true)" class="text-xs text-amber-600 hover:text-amber-800">Select All Manage</button>
+                <button type="button" onclick="selectAll(false)" class="text-xs text-gray-500 hover:text-gray-700">Clear All</button>
+            </div>
         </div>
 
         <form method="POST" id="perms-form">
@@ -95,12 +103,25 @@ $all_modules = [
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 <?php foreach ($all_modules as $key => $label): ?>
-                <label class="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 hover:border-teal-200 hover:bg-teal-50/30 cursor-pointer transition">
-                    <input type="checkbox" name="modules[]" value="<?= $key ?>"
-                           <?= in_array($key, $current_modules) ? 'checked' : '' ?>
-                           class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
-                    <span class="text-xs font-medium text-gray-700"><?= $label ?></span>
-                </label>
+                <div class="px-3 py-2 rounded-lg border border-gray-200 hover:border-teal-200 transition">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-medium text-gray-700"><?= $label ?></span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <label class="flex items-center gap-1 text-[10px] text-gray-500 cursor-pointer">
+                            <input type="checkbox" name="view[]" value="<?= $key ?>"
+                                   <?= !empty($view_map[$key]) ? 'checked' : '' ?>
+                                   class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                            View
+                        </label>
+                        <label class="flex items-center gap-1 text-[10px] text-gray-500 cursor-pointer">
+                            <input type="checkbox" name="manage[]" value="<?= $key ?>"
+                                   <?= !empty($manage_map[$key]) ? 'checked' : '' ?>
+                                   class="rounded border-gray-300 text-amber-600 focus:ring-amber-500">
+                            Manage
+                        </label>
+                    </div>
+                </div>
                 <?php endforeach; ?>
             </div>
 
@@ -116,6 +137,16 @@ $all_modules = [
 
 <script>
 function selectAll(checked) {
-    document.querySelectorAll('#perms-form input[name="modules[]"]').forEach(cb => cb.checked = checked);
+    document.querySelectorAll('#perms-form input[name="view[]"]').forEach(cb => cb.checked = checked);
+}
+function selectAllManage(checked) {
+    document.querySelectorAll('#perms-form input[name="manage[]"]').forEach(cb => cb.checked = checked);
+    // also check view for manage-selected items
+    if (checked) {
+        document.querySelectorAll('#perms-form input[name="manage[]"]:checked').forEach(cb => {
+            const viewCb = document.querySelector('#perms-form input[name="view[]"][value="' + cb.value + '"]');
+            if (viewCb) viewCb.checked = true;
+        });
+    }
 }
 </script>
