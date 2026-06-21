@@ -167,13 +167,25 @@ include __DIR__ . '/../../includes/header.php';
 
     <?php else: ?>
     <?php
-    $sessions = db_get_all("SELECT lc.*, u.full_name as teacher_name, c.name as class_name,
+    $user_role = get_user_role();
+    $uid = get_user_id();
+    $session_sql = "SELECT lc.*, u.full_name as teacher_name, c.name as class_name,
         (SELECT COUNT(*) FROM live_class_attendance WHERE live_class_id = lc.id) as total_attended,
         (SELECT COUNT(*) FROM live_class_attendance WHERE live_class_id = lc.id AND status = 'active') as still_active
         FROM live_classes lc
         LEFT JOIN users u ON lc.teacher_id = u.id
-        LEFT JOIN classes c ON lc.class_id = c.id
-        ORDER BY lc.scheduled_at DESC");
+        LEFT JOIN classes c ON lc.class_id = c.id";
+    if ($user_role === 'admin') {
+        $sessions = db_get_all("$session_sql ORDER BY lc.scheduled_at DESC");
+    } elseif ($user_role === 'teacher') {
+        $sessions = db_get_all("$session_sql WHERE (lc.teacher_id = ? OR lc.class_id IN (SELECT class_id FROM class_teachers WHERE teacher_id = ?)) ORDER BY lc.scheduled_at DESC", [$uid, $uid]);
+    } elseif ($user_role === 'student') {
+        $sessions = db_get_all("$session_sql WHERE lc.class_id IN (SELECT class_id FROM students WHERE user_id = ?) ORDER BY lc.scheduled_at DESC", [$uid]);
+    } elseif ($user_role === 'parent') {
+        $sessions = db_get_all("$session_sql WHERE lc.class_id IN (SELECT s.class_id FROM student_parents sp JOIN students s ON sp.student_id = s.id WHERE sp.parent_user_id = ?) ORDER BY lc.scheduled_at DESC", [$uid]);
+    } else {
+        $sessions = [];
+    }
     ?>
     <div class="flex items-center justify-between mb-6">
         <div>

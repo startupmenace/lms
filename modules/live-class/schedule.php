@@ -4,7 +4,12 @@ require_once __DIR__ . '/../../includes/functions.php';
 require_role('admin', 'teacher');
 
 $page_title = 'Schedule Live Class';
-$classes = db_get_all("SELECT * FROM classes WHERE is_active = 1 ORDER BY name");
+if (has_role('admin')) {
+    $classes = db_get_all("SELECT * FROM classes WHERE is_active = 1 ORDER BY name");
+} else {
+    $uid = get_user_id();
+    $classes = db_get_all("SELECT c.* FROM classes c JOIN class_teachers ct ON c.id = ct.class_id WHERE c.is_active = 1 AND ct.teacher_id = ? ORDER BY c.name", [$uid]);
+}
 $subjects = db_get_all("SELECT * FROM subjects WHERE is_active = 1 ORDER BY name");
 $teachers = db_get_all("SELECT id, full_name FROM users WHERE role IN ('admin','teacher') ORDER BY full_name");
 

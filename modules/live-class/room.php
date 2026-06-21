@@ -11,6 +11,50 @@ if (!$live) {
     redirect('index.php');
 }
 
+// Block access to ended classes
+if ($live['status'] === 'completed' || $live['status'] === 'cancelled') {
+    set_flash('error', 'This live class has ended.');
+    redirect('index.php');
+}
+
+// Auto-expire if past end time
+$end_time = strtotime($live['scheduled_at'] . ' + ' . $live['duration_minutes'] . ' minutes');
+if ($live['status'] === 'live' && time() > $end_time) {
+    db_query("UPDATE live_classes SET status = 'completed' WHERE id = ?", [$live_id]);
+    set_flash('error', 'This live class has ended.');
+    redirect('index.php');
+}
+
+// Auto-expire scheduled classes past their end time
+if ($live['status'] === 'scheduled' && time() > $end_time) {
+    db_query("UPDATE live_classes SET status = 'completed' WHERE id = ?", [$live_id]);
+    set_flash('error', 'This live class has ended.');
+    redirect('index.php');
+}
+
+// Class membership check
+$user_role = get_user_role();
+$uid = get_user_id();
+$can_access = false;
+
+if ($user_role === 'admin') {
+    $can_access = true;
+} elseif ($user_role === 'teacher') {
+    $assigned = db_get_row("SELECT id FROM class_teachers WHERE teacher_id = ? AND class_id = ?", [$uid, $live['class_id']]);
+    $can_access = ($live['teacher_id'] == $uid || $assigned);
+} elseif ($user_role === 'student') {
+    $student_class = db_get_row("SELECT id FROM students WHERE user_id = ? AND class_id = ?", [$uid, $live['class_id']]);
+    $can_access = (bool)$student_class;
+} elseif ($user_role === 'parent') {
+    $child = db_get_row("SELECT sp.id FROM student_parents sp JOIN students s ON sp.student_id = s.id WHERE sp.parent_user_id = ? AND s.class_id = ?", [$uid, $live['class_id']]);
+    $can_access = (bool)$child;
+}
+
+if (!$can_access) {
+    set_flash('error', 'You do not have access to this live class.');
+    redirect('index.php');
+}
+
 // Mark as live if scheduled
 if ($live['status'] === 'scheduled') {
     db_query("UPDATE live_classes SET status = 'live' WHERE id = ? AND status = 'scheduled'", [$live_id]);

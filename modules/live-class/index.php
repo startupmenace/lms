@@ -5,11 +5,28 @@ require_module_access('live-class');
 
 $page_title = 'Live Class';
 
-$live_classes = db_get_all("SELECT lc.*, u.full_name as teacher_name, c.name as class_name
+// Auto-expire live classes past their end time
+db_query("UPDATE live_classes SET status = 'completed' WHERE status = 'live' AND scheduled_at < DATE_SUB(NOW(), INTERVAL duration_minutes MINUTE)");
+
+$user_role = get_user_role();
+$uid = get_user_id();
+$base_query = "SELECT lc.*, u.full_name as teacher_name, c.name as class_name
     FROM live_classes lc
     LEFT JOIN users u ON lc.teacher_id = u.id
     LEFT JOIN classes c ON lc.class_id = c.id
-    ORDER BY lc.scheduled_at DESC LIMIT 10");
+    WHERE lc.status IN ('scheduled', 'live')";
+
+if ($user_role === 'admin') {
+    $live_classes = db_get_all("$base_query ORDER BY lc.scheduled_at DESC LIMIT 10");
+} elseif ($user_role === 'teacher') {
+    $live_classes = db_get_all("$base_query AND (lc.teacher_id = ? OR lc.class_id IN (SELECT class_id FROM class_teachers WHERE teacher_id = ?)) ORDER BY lc.scheduled_at DESC LIMIT 10", [$uid, $uid]);
+} elseif ($user_role === 'student') {
+    $live_classes = db_get_all("$base_query AND lc.class_id IN (SELECT class_id FROM students WHERE user_id = ?) ORDER BY lc.scheduled_at DESC LIMIT 10", [$uid]);
+} elseif ($user_role === 'parent') {
+    $live_classes = db_get_all("$base_query AND lc.class_id IN (SELECT s.class_id FROM student_parents sp JOIN students s ON sp.student_id = s.id WHERE sp.parent_user_id = ?) ORDER BY lc.scheduled_at DESC LIMIT 10", [$uid]);
+} else {
+    $live_classes = [];
+}
 
 include __DIR__ . '/../../includes/header.php';
 ?>
