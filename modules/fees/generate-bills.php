@@ -94,7 +94,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate'])) {
             ];
         }
 
+        $discount = max(0, (float)sanitize($_POST['discount'][$sid] ?? 0));
         $total = $base_total + $extra_total;
+        $discount = max(0, (float)sanitize($_POST['discount'][$sid] ?? 0));
+        if ($discount > $total) $discount = 0;
 
         // Prefix: override > term config > structure default
         if ($prefix_override) {
@@ -118,9 +121,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate'])) {
             $due_date = null;
         }
 
+        $due_amount = $total - $discount;
         db_insert(
-            "INSERT INTO transactions (student_id, fee_structure_id, term, session_year, due_date, invoice_no, total_amount, line_items, paid_amount, due_amount, payment_status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 'pending', NOW())",
-            [$sid, $structure_id, $term, $session, $due_date, $invoice_no, $total, json_encode($line_items), $total]
+            "INSERT INTO transactions (student_id, fee_structure_id, term, session_year, due_date, invoice_no, total_amount, discount, line_items, paid_amount, due_amount, payment_status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 'pending', NOW())",
+            [$sid, $structure_id, $term, $session, $due_date, $invoice_no, $total, $discount, json_encode($line_items), $due_amount]
         );
         $created++;
     }
@@ -261,6 +265,7 @@ include __DIR__ . '/../../includes/header.php';
                             <th class="text-left py-3 px-4 font-medium text-gray-500">Stream</th>
                             <th class="text-right py-3 px-4 font-medium text-gray-500">Base Fee</th>
                             <th class="py-3 px-4 font-medium text-gray-500" colspan="2">Extra Charges</th>
+                            <th class="text-right py-3 px-4 font-medium text-gray-500">Discount</th>
                             <th class="text-right py-3 px-4 font-medium text-gray-500">Total</th>
                         </tr>
                     </thead>
@@ -291,7 +296,7 @@ include __DIR__ . '/../../includes/header.php';
                             </td>
                             <td class="py-3 px-4"><?= !empty($s['class_section']) ? '<span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">' . sanitize($s['class_section']) . '</span>' : '—' ?></td>
                             <td class="py-3 px-4 text-right font-medium"><?= format_currency($base_total) ?></td>
-                            <td class="py-3 px-4" colspan="3">
+                            <td class="py-3 px-4" colspan="2">
                                 <?php if ($existing_bill): ?>
                                 <span class="text-xs text-green-600"><i class="fas fa-check-circle"></i> Already billed</span>
                                 <?php else: ?>
@@ -300,6 +305,13 @@ include __DIR__ . '/../../includes/header.php';
                                     <input type="number" name="extras_amount[<?= $s['id'] ?>][]" placeholder="Amount" step="0.01" min="0" class="w-20 border border-gray-200 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-teal-500 outline-none">
                                     <button type="button" onclick="addExtra(this)" class="text-teal-600 hover:text-teal-800 text-xs"><i class="fas fa-plus"></i></button>
                                 </div>
+                                <?php endif; ?>
+                            </td>
+                            <td class="py-3 px-4 text-right">
+                                <?php if ($existing_bill): ?>
+                                <span class="text-xs text-gray-400">—</span>
+                                <?php else: ?>
+                                <input type="number" name="discount[<?= $s['id'] ?>]" value="0" step="0.01" min="0" max="<?= $base_total ?>" class="w-20 border border-gray-200 rounded px-2 py-1 text-xs text-right focus:ring-1 focus:ring-teal-500 outline-none">
                                 <?php endif; ?>
                             </td>
                             <td class="py-3 px-4 text-right font-semibold"><?= format_currency($existing_bill ? 0 : $base_total) ?></td>

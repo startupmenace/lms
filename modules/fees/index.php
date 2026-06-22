@@ -332,6 +332,7 @@ include __DIR__ . '/../../includes/header.php';
                     <th class="text-right py-3 px-4 font-medium text-gray-500">Applicable</th>
                     <th class="text-right py-3 px-4 font-medium text-gray-500">Paid</th>
                     <th class="text-right py-3 px-4 font-medium text-gray-500">Due</th>
+                    <th class="text-center py-3 px-4 font-medium text-gray-500">Action</th>
                     <th class="text-center py-3 px-4 font-medium text-gray-500">Progress</th>
                     <th class="text-center py-3 px-4 font-medium text-gray-500">Status</th>
                     <th class="text-center py-3 px-4 font-medium text-gray-500">Due Date</th>
@@ -340,7 +341,7 @@ include __DIR__ . '/../../includes/header.php';
             </thead>
             <tbody>
                 <?php if (empty($transactions)): ?>
-                <tr><td colspan="12" class="py-12 text-center text-gray-400">No transactions found.</td></tr>
+                <tr><td colspan="13" class="py-12 text-center text-gray-400">No transactions found.</td></tr>
                 <?php else: ?>
                 <?php foreach ($transactions as $t): 
                     $applicable = $t['total_amount'] - ($t['discount'] ?? 0);
@@ -381,6 +382,9 @@ include __DIR__ . '/../../includes/header.php';
                         <?php endif; ?>
                     </td>
                     <td class="py-3 px-4"><?= $t['payment_date'] ? format_date($t['payment_date']) : format_date($t['created_at']) ?></td>
+                    <td class="py-3 px-4 text-center">
+                        <a href="apply-discount.php?id=<?= $t['id'] ?>" class="text-xs font-semibold text-teal-600 hover:text-teal-800 hover:underline">Discount</a>
+                    </td>
                 </tr>
                 <?php endforeach; ?>
                 <?php endif; ?>
