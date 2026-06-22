@@ -129,7 +129,7 @@
         </a>
 
         <a href="<?= BASE_URL ?>/modules/diary/index.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
-            <i class="fas fa-book w-5 text-center"></i> Diary
+            <i class="fas fa-book w-5 text-center"></i> Staff Memo
         </a>
 
         <a href="<?= BASE_URL ?>/modules/live-class/index.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">

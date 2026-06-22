@@ -3,9 +3,18 @@ require_once __DIR__ . '/../../includes/session.php';
 require_once __DIR__ . '/../../includes/functions.php';
 require_module_access('diary');
 
-$page_title = 'My Diary';
+$user_id = get_user_id();
+$is_student = has_role('student');
+$label = $is_student ? 'Diary' : 'Staff Memo';
+$page_title = $is_student ? 'My Diary' : 'Staff Memo';
+
 $tab = $_GET['tab'] ?? 'entries';
-$teachers = db_get_all("SELECT id, full_name FROM users WHERE role IN ('admin','teacher') AND is_active=1 ORDER BY full_name");
+
+$all_users = db_get_all("SELECT id, full_name, role FROM users WHERE is_active=1 ORDER BY FIELD(role,'admin','teacher','staff','manager','accountant','supplier','driver','cook','student'), full_name");
+$grouped_users = [];
+foreach ($all_users as $u) {
+    $grouped_users[$u['role']][] = $u;
+}
 
 $editing_entry = null;
 
@@ -20,31 +29,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $is_private = (int)($_POST['is_private'] ?? 0);
         $shared_with = !empty($_POST['shared_with']) ? (int)$_POST['shared_with'] : null;
 
+        $attachments = [];
+        if (!empty($_FILES['attachments']['name'][0])) {
+            $upload_dir = __DIR__ . '/../../uploads/memos';
+            if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+            foreach ($_FILES['attachments']['error'] as $i => $err) {
+                if ($err !== UPLOAD_ERR_OK) continue;
+                $ext = strtolower(pathinfo($_FILES['attachments']['name'][$i], PATHINFO_EXTENSION));
+                $safe_name = uniqid('memo_') . '.' . $ext;
+                $dest = $upload_dir . '/' . $safe_name;
+                if (move_uploaded_file($_FILES['attachments']['tmp_name'][$i], $dest)) {
+                    $attachments[] = $safe_name;
+                }
+            }
+        }
+
         if ($action === 'create') {
             if ($shared_with) {
-                db_insert("INSERT INTO diary_entries (user_id,title,content,entry_date,category,is_private,shared_with,shared_at) VALUES (?,?,?,?,?,?,?,NOW())", [
-                    get_user_id(), $title, $content, $entry_date, $category, $is_private, $shared_with
+                db_insert("INSERT INTO diary_entries (user_id,title,content,entry_date,category,is_private,shared_with,shared_at,attachments) VALUES (?,?,?,?,?,?,?,NOW(),?)", [
+                    $user_id, $title, $content, $entry_date, $category, $is_private, $shared_with, !empty($attachments) ? json_encode($attachments) : null
                 ]);
             } else {
-                db_insert("INSERT INTO diary_entries (user_id,title,content,entry_date,category,is_private) VALUES (?,?,?,?,?,?)", [
-                    get_user_id(), $title, $content, $entry_date, $category, $is_private
+                db_insert("INSERT INTO diary_entries (user_id,title,content,entry_date,category,is_private,attachments) VALUES (?,?,?,?,?,?,?)", [
+                    $user_id, $title, $content, $entry_date, $category, $is_private, !empty($attachments) ? json_encode($attachments) : null
                 ]);
             }
-            set_flash('success', 'Diary entry created');
+            set_flash('success', $is_student ? 'Diary entry created' : 'Memo created');
         } else {
             $id = (int)$_POST['id'];
-            $entry = db_get_row("SELECT * FROM diary_entries WHERE id=? AND (user_id=? OR ? IN ('admin','teacher'))", [$id, get_user_id(), get_user_role()]);
+            $entry = db_get_row("SELECT * FROM diary_entries WHERE id=? AND (user_id=? OR ? IN ('admin','teacher'))", [$id, $user_id, get_user_role()]);
             if ($entry) {
+                $existing_attachments = $entry['attachments'] ? json_decode($entry['attachments'], true) : [];
+                $merged = array_merge($existing_attachments, $attachments);
+                $attachments_json = !empty($merged) ? json_encode($merged) : null;
                 if ($shared_with) {
-                    db_query("UPDATE diary_entries SET title=?, content=?, entry_date=?, category=?, is_private=?, shared_with=?, shared_at=NOW() WHERE id=?", [
-                        $title, $content, $entry_date, $category, $is_private, $shared_with, $id
+                    db_query("UPDATE diary_entries SET title=?, content=?, entry_date=?, category=?, is_private=?, shared_with=?, shared_at=NOW(), attachments=? WHERE id=?", [
+                        $title, $content, $entry_date, $category, $is_private, $shared_with, $attachments_json, $id
                     ]);
                 } else {
-                    db_query("UPDATE diary_entries SET title=?, content=?, entry_date=?, category=?, is_private=?, shared_with=NULL, shared_at=NULL WHERE id=?", [
-                        $title, $content, $entry_date, $category, $is_private, $id
+                    db_query("UPDATE diary_entries SET title=?, content=?, entry_date=?, category=?, is_private=?, shared_with=NULL, shared_at=NULL, attachments=? WHERE id=?", [
+                        $title, $content, $entry_date, $category, $is_private, $attachments_json, $id
                     ]);
                 }
-                set_flash('success', 'Diary entry updated');
+                set_flash('success', $is_student ? 'Diary entry updated' : 'Memo updated');
             }
         }
         redirect('?tab=entries');
@@ -53,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add_feedback') {
         $id = (int)$_POST['id'];
         $feedback = trim($_POST['teacher_feedback'] ?? '');
-        $entry = db_get_row("SELECT * FROM diary_entries WHERE id=? AND shared_with=?", [$id, get_user_id()]);
+        $entry = db_get_row("SELECT * FROM diary_entries WHERE id=? AND shared_with=?", [$id, $user_id]);
         if ($entry) {
             db_query("UPDATE diary_entries SET teacher_feedback=? WHERE id=?", [$feedback, $id]);
             set_flash('success', 'Feedback saved');
@@ -63,17 +90,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'delete') {
         $id = (int)$_POST['id'];
-        $entry = db_get_row("SELECT * FROM diary_entries WHERE id=? AND user_id=?", [$id, get_user_id()]);
+        $entry = db_get_row("SELECT * FROM diary_entries WHERE id=? AND user_id=?", [$id, $user_id]);
         if ($entry || has_role('admin')) {
+            $attachments = $entry ? json_decode($entry['attachments'], true) : [];
+            foreach ((array)$attachments as $f) {
+                $path = __DIR__ . '/../../uploads/memos/' . $f;
+                if (file_exists($path)) unlink($path);
+            }
             db_query("DELETE FROM diary_entries WHERE id=?", [$id]);
-            set_flash('success', 'Entry deleted');
+            set_flash('success', $is_student ? 'Entry deleted' : 'Memo deleted');
         }
         redirect('?tab=entries');
+    }
+
+    if ($action === 'delete_attachment') {
+        $id = (int)$_POST['id'];
+        $file = $_POST['file'] ?? '';
+        $entry = db_get_row("SELECT * FROM diary_entries WHERE id=? AND (user_id=? OR ? IN ('admin','teacher'))", [$id, $user_id, get_user_role()]);
+        if ($entry && $file) {
+            $files = json_decode($entry['attachments'], true) ?: [];
+            $files = array_values(array_filter($files, fn($f) => $f !== $file));
+            $path = __DIR__ . '/../../uploads/memos/' . basename($file);
+            if (file_exists($path)) unlink($path);
+            db_query("UPDATE diary_entries SET attachments=? WHERE id=?", [!empty($files) ? json_encode($files) : null, $id]);
+            set_flash('success', 'Attachment removed');
+        }
+        redirect('?edit&id=' . $id);
     }
 }
 
 if (isset($_GET['edit']) && isset($_GET['id'])) {
-    $editing_entry = db_get_row("SELECT * FROM diary_entries WHERE id=? AND (user_id=? OR ? IN ('admin','teacher'))", [(int)$_GET['id'], get_user_id(), get_user_role()]);
+    $editing_entry = db_get_row("SELECT * FROM diary_entries WHERE id=? AND (user_id=? OR ? IN ('admin','teacher'))", [(int)$_GET['id'], $user_id, get_user_role()]);
 }
 
 $entries = [];
@@ -82,19 +129,35 @@ if ($tab === 'entries') {
     if (has_role('admin')) {
         $entries = db_get_all("SELECT de.*, u.full_name as author_name FROM diary_entries de JOIN users u ON de.user_id=u.id ORDER BY de.entry_date DESC, de.created_at DESC LIMIT 100");
     } else {
-        $entries = db_get_all("SELECT * FROM diary_entries WHERE user_id=? ORDER BY entry_date DESC, created_at DESC LIMIT 100", [get_user_id()]);
+        $entries = db_get_all("SELECT * FROM diary_entries WHERE user_id=? ORDER BY entry_date DESC, created_at DESC LIMIT 100", [$user_id]);
     }
-} elseif ($tab === 'shared' && !has_role('student')) {
+} elseif ($tab === 'shared' && !$is_student) {
     $shared_entries = db_get_all("SELECT de.*, u.full_name as author_name, u2.full_name as teacher_name
         FROM diary_entries de
         JOIN users u ON de.user_id=u.id
         LEFT JOIN users u2 ON de.shared_with=u2.id
         WHERE de.shared_with=? OR (de.shared_with IS NOT NULL AND ?='admin')
-        ORDER BY de.shared_at DESC LIMIT 50", [get_user_id(), get_user_role()]);
+        ORDER BY de.shared_at DESC LIMIT 50", [$user_id, get_user_role()]);
 }
 
-$header_file = has_role('student') ? __DIR__ . '/../../includes/student-header.php' : __DIR__ . '/../../includes/header.php';
-$footer_file = has_role('student') ? __DIR__ . '/../../includes/student-footer.php' : __DIR__ . '/../../includes/footer.php';
+$header_file = $is_student ? __DIR__ . '/../../includes/student-header.php' : __DIR__ . '/../../includes/header.php';
+$footer_file = $is_student ? __DIR__ . '/../../includes/student-footer.php' : __DIR__ . '/../../includes/footer.php';
+
+function memo_attachment_html($files) {
+    if (!$files) return '';
+    $names = json_decode($files, true);
+    if (empty($names)) return '';
+    $html = '<div class="mt-2 space-y-1">';
+    foreach ($names as $f) {
+        $display = preg_replace('/^memo_[a-f0-9]+\./i', '', $f);
+        $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+        $icon = in_array($ext, ['jpg','jpeg','png','gif']) ? 'fa-image' : (in_array($ext, ['pdf']) ? 'fa-file-pdf' : (in_array($ext, ['doc','docx']) ? 'fa-file-word' : (in_array($ext, ['xls','xlsx']) ? 'fa-file-excel' : 'fa-paperclip')));
+        $html .= '<a href="' . BASE_URL . '/uploads/memos/' . $f . '" target="_blank" class="inline-flex items-center gap-1 text-xs text-teal-600 hover:text-teal-800 hover:underline"><i class="fas ' . $icon . '"></i> ' . sanitize($display) . '</a>';
+    }
+    $html .= '</div>';
+    return $html;
+}
+
 include $header_file;
 ?>
 
@@ -102,13 +165,13 @@ include $header_file;
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
             <h1 class="text-xl sm:text-2xl font-bold text-gray-900">
-                <i class="fas fa-book text-teal-600 mr-2"></i> <?= has_role('student') ? 'Student' : 'Staff' ?> Diary
+                <i class="fas fa-book text-teal-600 mr-2"></i> <?= $label ?>
             </h1>
-            <p class="text-gray-500 text-sm mt-1">Record daily notes <?= has_role('student') ? 'and share them with your teacher' : 'and review student submissions' ?></p>
+            <p class="text-gray-500 text-sm mt-1"><?= $is_student ? 'Record daily notes and share them with your teacher' : ('Write memos and share with staff, teachers, and non-teaching personnel') ?></p>
         </div>
         <?php if ($tab !== 'write'): ?>
         <a href="?tab=write" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-700 transition flex items-center gap-2">
-            <i class="fas fa-plus"></i> New Entry
+            <i class="fas fa-plus"></i> New <?= $is_student ? 'Entry' : 'Memo' ?>
         </a>
         <?php endif; ?>
     </div>
@@ -116,24 +179,25 @@ include $header_file;
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
         <div class="flex border-b border-gray-200 overflow-x-auto">
             <a href="?tab=entries" class="px-5 py-3 text-sm font-medium whitespace-nowrap <?= $tab=='entries'?'text-teal-600 border-b-2 border-teal-600':'text-gray-500 hover:text-gray-700' ?>">
-                <i class="fas fa-list mr-2"></i>My Entries
+                <i class="fas fa-list mr-2"></i>My <?= $is_student ? 'Entries' : 'Memos' ?>
             </a>
             <a href="?tab=write" class="px-5 py-3 text-sm font-medium whitespace-nowrap <?= $tab=='write'||$editing_entry?'text-teal-600 border-b-2 border-teal-600':'text-gray-500 hover:text-gray-700' ?>">
-                <i class="fas fa-pen mr-2"></i><?= $editing_entry ? 'Edit Entry' : 'Write Entry' ?>
+                <i class="fas fa-pen mr-2"></i><?= $editing_entry ? 'Edit' : ($is_student ? 'Write Entry' : 'New Memo') ?>
             </a>
-            <?php if (!has_role('student')): ?>
+            <?php if (!$is_student): ?>
             <a href="?tab=shared" class="px-5 py-3 text-sm font-medium whitespace-nowrap <?= $tab=='shared'?'text-teal-600 border-b-2 border-teal-600':'text-gray-500 hover:text-gray-700' ?>">
                 <i class="fas fa-share-alt mr-2"></i>Shared with Me
-                <?php $shared_count = db_get_row("SELECT COUNT(*) as c FROM diary_entries WHERE shared_with=? AND teacher_feedback IS NULL", [get_user_id()])['c'] ?? 0; ?>
+                <?php $shared_count = db_get_row("SELECT COUNT(*) as c FROM diary_entries WHERE shared_with=? AND teacher_feedback IS NULL", [$user_id])['c'] ?? 0; ?>
                 <?php if ($shared_count > 0): ?><span class="ml-1 bg-teal-100 text-teal-700 text-[10px] px-1.5 py-0.5 rounded-full font-bold"><?= $shared_count ?></span><?php endif; ?>
             </a>
             <?php endif; ?>
         </div>
         <div class="p-5">
+
             <?php if ($tab === 'write' || $editing_entry): ?>
             <!-- Write/Edit Form -->
             <div class="max-w-2xl mx-auto">
-                <form method="POST">
+                <form method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="action" value="<?= $editing_entry ? 'update' : 'create' ?>">
                     <?php if ($editing_entry): ?><input type="hidden" name="id" value="<?= $editing_entry['id'] ?>"><?php endif; ?>
 
@@ -159,32 +223,56 @@ include $header_file;
                             <label class="block text-xs font-bold text-gray-700 mb-1">Content *</label>
                             <textarea name="content" required rows="8" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"><?= sanitize($editing_entry['content'] ?? '') ?></textarea>
                         </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Attachments</label>
+                            <input type="file" name="attachments[]" multiple class="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100">
+                            <?php if ($editing_entry && $editing_entry['attachments']): ?>
+                            <div class="mt-2 space-y-1">
+                                <?php foreach (json_decode($editing_entry['attachments'], true) ?: [] as $f): ?>
+                                <div class="flex items-center justify-between text-xs text-gray-600 bg-gray-50 rounded px-2 py-1">
+                                    <span><?= sanitize($f) ?></span>
+                                    <form method="POST" class="inline" onsubmit="return confirm('Remove this attachment?')">
+                                        <input type="hidden" name="action" value="delete_attachment">
+                                        <input type="hidden" name="id" value="<?= $editing_entry['id'] ?>">
+                                        <input type="hidden" name="file" value="<?= sanitize($f) ?>">
+                                        <button class="text-red-500 hover:text-red-700"><i class="fas fa-times"></i></button>
+                                    </form>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                            <?php endif; ?>
+                            <p class="text-[10px] text-gray-400 mt-0.5">Allowed: jpg, png, pdf, doc, docx, xls, xlsx (max 2MB each)</p>
+                        </div>
                         <div>
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="checkbox" name="is_private" value="1" <?= ($editing_entry['is_private'] ?? 0) ? 'checked' : '' ?> class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
-                                <span class="text-xs text-gray-600">Private (only visible to you <?= has_role('student') ? 'and admin' : '' ?>)</span>
+                                <span class="text-xs text-gray-600">Private (only visible to you<?= $is_student ? ' and admin' : '' ?>)</span>
                             </label>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">Share with Teacher</label>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Share with</label>
                             <select name="shared_with" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
                                 <option value="">— Don't share —</option>
-                                <?php foreach ($teachers as $t): ?>
-                                <option value="<?= $t['id'] ?>" <?= ($editing_entry['shared_with']??'')==$t['id']?'selected':'' ?>><?= sanitize($t['full_name']) ?></option>
+                                <?php foreach ($grouped_users as $role => $users): ?>
+                                <optgroup label="<?= ucfirst($role) . ($role !== 'staff' ? 's' : '') ?>">
+                                    <?php foreach ($users as $u): ?>
+                                    <option value="<?= $u['id'] ?>" <?= ($editing_entry['shared_with']??'')==$u['id']?'selected':'' ?>><?= sanitize($u['full_name']) ?></option>
+                                    <?php endforeach; ?>
+                                </optgroup>
                                 <?php endforeach; ?>
                             </select>
-                            <p class="text-[10px] text-gray-400 mt-0.5">Teachers can view and give feedback on shared entries</p>
+                            <p class="text-[10px] text-gray-400 mt-0.5">Share this memo so others can view and give feedback</p>
                         </div>
                         <?php if ($editing_entry && $editing_entry['teacher_feedback']): ?>
                         <div class="sm:col-span-2 bg-teal-50 rounded-lg p-3">
-                            <p class="text-xs font-bold text-teal-800 mb-1"><i class="fas fa-comment-dots mr-1"></i> Teacher Feedback</p>
+                            <p class="text-xs font-bold text-teal-800 mb-1"><i class="fas fa-comment-dots mr-1"></i> Feedback</p>
                             <p class="text-xs text-teal-700"><?= nl2br(sanitize($editing_entry['teacher_feedback'])) ?></p>
                         </div>
                         <?php endif; ?>
                     </div>
 
                     <button type="submit" class="bg-teal-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-teal-700 transition">
-                        <i class="fas fa-save mr-1"></i> <?= $editing_entry ? 'Update Entry' : 'Save Entry' ?>
+                        <i class="fas fa-save mr-1"></i> <?= $editing_entry ? 'Update' : 'Save' ?>
                     </button>
                     <?php if ($editing_entry): ?>
                     <a href="?tab=entries" class="ml-2 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-200 transition">Cancel</a>
@@ -192,16 +280,16 @@ include $header_file;
                 </form>
             </div>
 
-            <?php elseif ($tab === 'shared' && !has_role('student')): ?>
+            <?php elseif ($tab === 'shared' && !$is_student): ?>
             <!-- Shared with Me -->
             <h3 class="font-bold text-gray-900 text-sm mb-4 flex items-center gap-2">
-                <i class="fas fa-share-alt text-teal-600"></i> Entries Shared with Me
+                <i class="fas fa-share-alt text-teal-600"></i> Memos Shared with Me
                 <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium"><?= count($shared_entries) ?></span>
             </h3>
             <?php if (empty($shared_entries)): ?>
             <div class="text-center py-10 text-gray-400">
                 <i class="fas fa-inbox text-3xl mb-3 block text-gray-300"></i>
-                <p class="text-sm">No entries have been shared with you yet.</p>
+                <p class="text-sm">No memos have been shared with you yet.</p>
             </div>
             <?php else: ?>
             <div class="space-y-4">
@@ -224,7 +312,11 @@ include $header_file;
                         <span class="text-amber-600 text-xs"><i class="fas fa-lock"></i></span>
                         <?php endif; ?>
                     </div>
-                    <p class="text-xs text-gray-600 mb-3"><?= nl2br(sanitize($e['content'])) ?></p>
+                    <p class="text-xs text-gray-600 mb-2"><?= nl2br(sanitize($e['content'])) ?></p>
+
+                    <?php if ($e['attachments']): ?>
+                    <div class="mb-2"><?= memo_attachment_html($e['attachments']) ?></div>
+                    <?php endif; ?>
 
                     <?php if ($e['teacher_feedback']): ?>
                     <div class="bg-teal-50 rounded-lg p-3 text-xs text-teal-800 mb-3">
@@ -250,12 +342,12 @@ include $header_file;
             <?php endif; ?>
 
             <?php else: ?>
-            <!-- My Entries -->
+            <!-- My Entries / Memos -->
             <?php if (empty($entries)): ?>
             <div class="text-center py-12 text-gray-400">
                 <i class="fas fa-book-open text-4xl mb-3 block text-gray-300"></i>
-                <p class="text-sm">No diary entries yet.</p>
-                <a href="?tab=write" class="text-teal-600 hover:underline text-sm mt-2 inline-block">Write your first entry</a>
+                <p class="text-sm">No <?= strtolower($label) ?> entries yet.</p>
+                <a href="?tab=write" class="text-teal-600 hover:underline text-sm mt-2 inline-block">Write your first <?= strtolower($is_student ? 'entry' : 'memo') ?></a>
             </div>
             <?php else: ?>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -279,17 +371,22 @@ include $header_file;
                     </div>
                     <h4 class="font-semibold text-gray-900 text-sm mb-1"><?= sanitize($e['title']) ?></h4>
                     <p class="text-xs text-gray-600 line-clamp-3"><?= nl2br(sanitize(mb_substr($e['content'], 0, 200))) ?><?= mb_strlen($e['content']) > 200 ? '...' : '' ?></p>
+
+                    <?php if ($e['attachments']): ?>
+                    <?= memo_attachment_html($e['attachments']) ?>
+                    <?php endif; ?>
+
                     <?php if (has_role('admin') && isset($e['author_name'])): ?>
                     <p class="text-[10px] text-gray-400 mt-2">by <?= sanitize($e['author_name']) ?></p>
                     <?php endif; ?>
                     <?php if ($e['teacher_feedback']): ?>
                     <div class="mt-2 bg-teal-50 rounded p-2 text-[10px] text-teal-700">
-                        <i class="fas fa-comment-dots mr-0.5"></i> Teacher gave feedback
+                        <i class="fas fa-comment-dots mr-0.5"></i> Feedback received
                     </div>
                     <?php endif; ?>
                     <div class="mt-3 pt-2 border-t border-gray-100 flex items-center gap-2 text-xs">
                         <a href="?edit&id=<?= $e['id'] ?>" class="text-amber-600 hover:text-amber-800"><i class="fas fa-edit mr-0.5"></i> Edit</a>
-                        <form method="POST" class="inline" onsubmit="return confirm('Delete this entry?')">
+                        <form method="POST" class="inline" onsubmit="return confirm('Delete this <?= strtolower($is_student ? 'entry' : 'memo') ?>?')">
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="id" value="<?= $e['id'] ?>">
                             <button class="text-red-600 hover:text-red-800"><i class="fas fa-trash mr-0.5"></i> Delete</button>

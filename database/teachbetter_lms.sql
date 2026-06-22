@@ -194,6 +194,7 @@ CREATE TABLE `diary_entries` (
   `shared_with` int(11) DEFAULT NULL,
   `shared_at` datetime DEFAULT NULL,
   `teacher_feedback` text DEFAULT NULL,
+  `attachments` text DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
