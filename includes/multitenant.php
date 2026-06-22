@@ -144,10 +144,8 @@ function provision_school_db($db_name, $db_host = null, $db_user = null, $db_pas
     $conn = new mysqli($db_host, $db_user, $db_pass, '', $db_port);
     if ($conn->connect_error) throw new Exception("Cannot connect: " . $conn->connect_error);
 
-    $conn->query("DROP DATABASE IF EXISTS `$db_name`");
-    if (!$conn->query("CREATE DATABASE `$db_name` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")) {
-        throw new Exception("Create DB failed: " . $conn->error);
-    }
+    // Try to create — if DB already exists or lacks privilege, proceed anyway
+    $conn->query("CREATE DATABASE IF NOT EXISTS `$db_name` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     $conn->select_db($db_name);
 
     // Schema

@@ -66,13 +66,14 @@ $page_title = 'Manage Schools';
         <input type="text" name="search" value="<?= sanitize($search) ?>" placeholder="Search by name or subdomain..." class="w-full max-w-md bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:ring-2 focus:ring-teal-500 outline-none">
     </form>
 
-    <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
+    <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden overflow-x-auto">
         <table class="w-full text-sm">
             <thead><tr class="bg-gray-950/50 border-b border-gray-800">
                 <th class="text-left py-3 px-4 font-medium text-gray-400">School</th>
                 <th class="text-left py-3 px-4 font-medium text-gray-400">Subdomain</th>
+                <th class="text-left py-3 px-4 font-medium text-gray-400">Credentials</th>
                 <th class="text-left py-3 px-4 font-medium text-gray-400">DB</th>
-                <th class="text-left py-3 px-4 font-medium text-gray-400">Timezone</th>
+                <th class="text-left py-3 px-4 font-medium text-gray-400">DNS</th>
                 <th class="text-center py-3 px-4 font-medium text-gray-400">Status</th>
                 <th class="text-left py-3 px-4 font-medium text-gray-400">Actions</th>
             </tr></thead>
@@ -81,8 +82,31 @@ $page_title = 'Manage Schools';
             <tr class="border-b border-gray-800 hover:bg-gray-800/50">
                 <td class="py-3 px-4 font-medium"><?= sanitize($s['site_name']) ?></td>
                 <td class="py-3 px-4 text-gray-400"><?= sanitize($s['subdomain']) ?></td>
-                <td class="py-3 px-4 text-gray-400 font-mono text-xs"><?= sanitize($s['db_name']) ?></td>
-                <td class="py-3 px-4 text-gray-400 text-xs"><?= sanitize($s['timezone']) ?></td>
+                <td class="py-3 px-4">
+                    <?php if (!empty($s['admin_email'])): ?>
+                    <div class="text-xs space-y-0.5">
+                        <div class="text-gray-300"><?= sanitize($s['admin_email']) ?></div>
+                        <div class="text-teal-400 font-mono"><?= sanitize($s['admin_password']) ?></div>
+                    </div>
+                    <button onclick="copyLogin(<?= $s['id'] ?>)" class="mt-1 text-[10px] text-teal-500 hover:text-teal-400 transition flex items-center gap-1">
+                        <i class="fas fa-copy"></i> Copy login
+                    </button>
+                    <textarea id="login-<?= $s['id'] ?>" class="sr-only">URL: https://<?= sanitize($s['subdomain']) ?>.ziada.co.ke
+Email: <?= sanitize($s['admin_email']) ?>
+Password: <?= sanitize($s['admin_password']) ?></textarea>
+                    <?php else: ?>
+                    <span class="text-gray-600 text-xs italic">Not saved</span>
+                    <?php endif; ?>
+                </td>
+                <td class="py-3 px-4 text-gray-400 font-mono text-xs"><?= sanitize($s['db_name']) ?>
+                    <div class="text-gray-600"><?= sanitize($s['db_host'] ?? DB_HOST) ?>:<?= $s['db_port'] ?? DB_PORT ?></div>
+                </td>
+                <td class="py-3 px-4 text-xs">
+                    <?php if ($s['is_active']): ?>
+                    <span class="text-emerald-400"><?= sanitize($s['subdomain']) ?>.ziada.co.ke</span>
+                    <div class="text-gray-500 mt-0.5">A record → your server IP</div>
+                    <?php endif; ?>
+                </td>
                 <td class="py-3 px-4 text-center">
                     <a href="?toggle=<?= $s['id'] ?>" class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full <?= $s['is_active'] ? 'bg-emerald-900/50 text-emerald-300' : 'bg-red-900/50 text-red-300 hover:bg-emerald-900/50 hover:text-emerald-300' ?>">
                         <i class="fas fa-circle text-[6px]"></i> <?= $s['is_active'] ? 'Active' : 'Inactive' ?>
@@ -96,6 +120,19 @@ $page_title = 'Manage Schools';
             </tbody>
         </table>
     </div>
+    <script>
+    function copyLogin(id) {
+        var ta = document.getElementById('login-' + id);
+        ta.classList.remove('sr-only');
+        ta.select();
+        document.execCommand('copy');
+        ta.classList.add('sr-only');
+        var btn = ta.parentElement.querySelector('button');
+        var orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        setTimeout(function(){ btn.innerHTML = orig; }, 2000);
+    }
+    </script>
 </div>
 </body>
 </html>

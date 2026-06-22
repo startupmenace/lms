@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS `schools` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `subdomain` varchar(100) NOT NULL,
   `site_name` varchar(200) NOT NULL DEFAULT 'Ziada LMS',
+  `admin_email` varchar(200) DEFAULT NULL,
+  `admin_password` varchar(255) DEFAULT NULL,
   `timezone` varchar(50) NOT NULL DEFAULT 'Africa/Nairobi',
   `db_host` varchar(200) DEFAULT NULL,
   `db_port` int(11) DEFAULT 3306,
