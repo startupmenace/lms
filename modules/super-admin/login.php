@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../../config/config.php';
 $page_title = 'Super Admin Login';
 $error = $_GET['error'] ?? '';
 ?>
