@@ -1,6 +1,4 @@
 <?php
-@ini_set('opcache.revalidate_freq', 0);
-@opcache_invalidate(__FILE__, true);
 require_once __DIR__ . '/../../includes/session.php';
 require_once __DIR__ . '/../../includes/functions.php';
 require_role('admin');
@@ -51,7 +49,7 @@ $current_pct = $total > 0 ? round($current_discount / $total * 100, 1) : 0;
 $json_total = json_encode($total);
 $json_paid = json_encode($paid);
 $json_max = json_encode($max_allowed);
-$js_sym = json_encode(CURRENCY_SYMBOL ?? 'KSh');
+$js_sym = json_encode('KSh');
 ?>
 
 <div class="max-w-2xl mx-auto">
@@ -95,7 +93,7 @@ $js_sym = json_encode(CURRENCY_SYMBOL ?? 'KSh');
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Discount Amount <span class="text-red-500">*</span></label>
                     <div class="relative">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium"><?= CURRENCY_SYMBOL ?? 'KSh' ?></span>
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">KSh</span>
                         <input type="text" inputmode="decimal" name="discount_amount" id="amtInput" required autocomplete="new-password"
                             class="w-full border border-gray-300 rounded-lg pl-12 pr-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
                             placeholder="Enter amount" value="">
