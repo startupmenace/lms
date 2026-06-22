@@ -1,6 +1,16 @@
 <?php
 /**
  * Multi-tenant helpers — purely additive, zero core file changes.
+ */
+
+// sanitize() for super-admin pages (they don't load includes/functions.php)
+if (!function_exists('sanitize')) {
+    function sanitize($input) {
+        return htmlspecialchars($input ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+}
+
+/**
  *
  * When you're ready to activate multi-tenant mode, uncomment the
  * include line in config/config.php. Until then, the system runs
