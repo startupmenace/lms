@@ -20,8 +20,8 @@ try {
             }
             exit;
         }
-        db_insert("INSERT INTO staff_attendance (user_id, date, status, check_in, marked_by) VALUES (?, ?, 'present', CURTIME(), ?)", [$user_id, $today, $user_id]);
         $now = date('H:i:s');
+        db_insert("INSERT INTO staff_attendance (user_id, date, status, check_in, marked_by) VALUES (?, ?, 'present', ?, ?)", [$user_id, $today, $now, $user_id]);
         echo json_encode(['ok' => true, 'msg' => 'Checked in at ' . date('h:i A'), 'time' => $now, 'action' => 'checkin']);
 
     } elseif ($action === 'checkout') {
@@ -34,9 +34,10 @@ try {
             echo json_encode(['ok' => false, 'msg' => 'Already checked out at ' . date('h:i A', strtotime($existing['check_out']))]);
             exit;
         }
-        $result = db_query("UPDATE staff_attendance SET check_out = CURTIME() WHERE id = " . intval($existing['id']));
+        $now = date('H:i:s');
+        $id = intval($existing['id']);
+        $result = db_query("UPDATE staff_attendance SET check_out = '$now' WHERE id = $id");
         if ($result) {
-            $now = date('H:i:s');
             echo json_encode(['ok' => true, 'msg' => 'Checked out at ' . date('h:i A'), 'time' => $now, 'action' => 'checkout']);
         } else {
             echo json_encode(['ok' => false, 'msg' => 'Failed to check out. Please try again.']);
