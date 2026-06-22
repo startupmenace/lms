@@ -324,24 +324,21 @@ include __DIR__ . '/../../includes/header.php';
         <table class="w-full text-sm">
             <thead>
                 <tr class="bg-gray-50 border-b border-gray-200">
-                    <th class="text-left py-3 px-4 font-medium text-gray-500">Invoice</th>
-                    <th class="text-left py-3 px-4 font-medium text-gray-500">Student</th>
-                    <th class="text-left py-3 px-4 font-medium text-gray-500">Class</th>
-                    <th class="text-right py-3 px-4 font-medium text-gray-500">Billed</th>
-                    <th class="text-right py-3 px-4 font-medium text-gray-500">Disc.</th>
-                    <th class="text-right py-3 px-4 font-medium text-gray-500">Applicable</th>
-                    <th class="text-right py-3 px-4 font-medium text-gray-500">Paid</th>
-                    <th class="text-right py-3 px-4 font-medium text-gray-500">Due</th>
-                    <th class="text-center py-3 px-4 font-medium text-gray-500">Action</th>
-                    <th class="text-center py-3 px-4 font-medium text-gray-500">Progress</th>
-                    <th class="text-center py-3 px-4 font-medium text-gray-500">Status</th>
-                    <th class="text-center py-3 px-4 font-medium text-gray-500">Due Date</th>
-                    <th class="text-left py-3 px-4 font-medium text-gray-500">Date</th>
+                    <th class="text-left py-3 px-3 font-medium text-gray-500 text-xs">Invoice</th>
+                    <th class="text-left py-3 px-3 font-medium text-gray-500 text-xs">Student</th>
+                    <th class="text-left py-3 px-3 font-medium text-gray-500 text-xs hidden md:table-cell">Class</th>
+                    <th class="text-right py-3 px-3 font-medium text-gray-500 text-xs">Billed</th>
+                    <th class="text-right py-3 px-3 font-medium text-gray-500 text-xs">Paid</th>
+                    <th class="text-right py-3 px-3 font-medium text-gray-500 text-xs">Due</th>
+                    <th class="text-center py-3 px-3 font-medium text-gray-500 text-xs hidden lg:table-cell">Progress</th>
+                    <th class="text-center py-3 px-3 font-medium text-gray-500 text-xs">Status</th>
+                    <th class="text-center py-3 px-3 font-medium text-gray-500 text-xs hidden lg:table-cell">Due Date</th>
+                    <th class="text-center py-3 px-3 font-medium text-gray-500 text-xs">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($transactions)): ?>
-                <tr><td colspan="13" class="py-12 text-center text-gray-400">No transactions found.</td></tr>
+                <tr><td colspan="10" class="py-12 text-center text-gray-400">No transactions found.</td></tr>
                 <?php else: ?>
                 <?php foreach ($transactions as $t): 
                     $applicable = $t['total_amount'] - ($t['discount'] ?? 0);
@@ -350,28 +347,26 @@ include __DIR__ . '/../../includes/header.php';
                     $is_overdue = $t['due_date'] && $t['due_date'] < date('Y-m-d') && $t['payment_status'] !== 'paid';
                 ?>
                 <tr class="border-b border-gray-100 hover:bg-gray-50 <?= $is_overdue ? 'bg-red-50/50' : '' ?>">
-                    <td class="py-3 px-4 font-medium text-gray-900">#<?= sanitize($t['invoice_no']) ?></td>
-                    <td class="py-3 px-4"><?= sanitize($t['parent_name'] ?? 'N/A') ?></td>
-                    <td class="py-3 px-4"><?= sanitize($t['class_name'] ?? 'N/A') ?></td>
-                    <td class="py-3 px-4 text-right"><?= format_currency($t['total_amount']) ?></td>
-                    <td class="py-3 px-4 text-right text-orange-600 font-medium"><?= format_currency($t['discount'] ?? 0) ?></td>
-                    <td class="py-3 px-4 text-right font-medium text-gray-900"><?= format_currency($applicable) ?></td>
-                    <td class="py-3 px-4 text-right text-green-600 font-medium"><?= format_currency($t['paid_amount']) ?></td>
-                    <td class="py-3 px-4 text-right text-red-600 font-medium"><?= format_currency($applicable - $t['paid_amount']) ?></td>
-                    <td class="py-3 px-4">
-                        <div class="flex items-center gap-2 min-w-[90px]">
-                            <div class="flex-1 bg-gray-200 rounded-full h-2 max-w-[60px]">
+                    <td class="py-3 px-3 font-medium text-gray-900 text-xs">#<?= sanitize($t['invoice_no']) ?></td>
+                    <td class="py-3 px-3 text-xs"><?= sanitize($t['parent_name'] ?? 'N/A') ?></td>
+                    <td class="py-3 px-3 text-xs hidden md:table-cell"><?= sanitize($t['class_name'] ?? 'N/A') ?></td>
+                    <td class="py-3 px-3 text-right text-xs"><?= format_currency($t['total_amount']) ?></td>
+                    <td class="py-3 px-3 text-right text-xs text-green-600 font-medium"><?= format_currency($t['paid_amount']) ?></td>
+                    <td class="py-3 px-3 text-right text-xs font-bold <?= ($applicable - $t['paid_amount']) > 0 ? 'text-red-600' : 'text-green-600' ?>"><?= format_currency($applicable - $t['paid_amount']) ?></td>
+                    <td class="py-3 px-3 hidden lg:table-cell">
+                        <div class="flex items-center gap-1.5 min-w-[70px]">
+                            <div class="flex-1 bg-gray-200 rounded-full h-2 max-w-[50px]">
                                 <div class="h-full rounded-full <?= $bar_color ?>" style="width: <?= min($pct, 100) ?>%"></div>
                             </div>
                             <span class="text-xs font-bold <?= $pct >= 100 ? 'text-green-600' : ($pct >= 50 ? 'text-amber-600' : 'text-red-600') ?>"><?= $pct ?>%</span>
                         </div>
                     </td>
-                    <td class="py-3 px-4 text-center">
-                        <span class="text-xs font-semibold px-2 py-1 rounded-full <?= $t['payment_status'] == 'paid' ? 'bg-green-100 text-green-700' : ($t['payment_status'] == 'partial' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700') ?>">
+                    <td class="py-3 px-3 text-center">
+                        <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full <?= $t['payment_status'] == 'paid' ? 'bg-green-100 text-green-700' : ($t['payment_status'] == 'partial' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700') ?>">
                             <?= ucfirst($t['payment_status']) ?>
                         </span>
                     </td>
-                    <td class="py-3 px-4 text-center">
+                    <td class="py-3 px-3 text-center hidden lg:table-cell">
                         <?php if ($t['due_date']): ?>
                             <span class="text-xs font-medium <?= $is_overdue ? 'text-red-600 font-bold' : 'text-gray-600' ?>">
                                 <?= format_date($t['due_date']) ?>
@@ -381,9 +376,15 @@ include __DIR__ . '/../../includes/header.php';
                             <span class="text-xs text-gray-400">—</span>
                         <?php endif; ?>
                     </td>
-                    <td class="py-3 px-4"><?= $t['payment_date'] ? format_date($t['payment_date']) : format_date($t['created_at']) ?></td>
-                    <td class="py-3 px-4 text-center">
-                        <a href="apply-discount.php?id=<?= $t['id'] ?>" class="text-xs font-semibold text-teal-600 hover:text-teal-800 hover:underline">Discount</a>
+                    <td class="py-3 px-3">
+                        <div class="flex items-center justify-center gap-1">
+                            <a href="record-payment.php?id=<?= $t['id'] ?>" class="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold <?= $t['payment_status'] == 'paid' ? 'bg-gray-100 text-gray-400 cursor-not-allowed pointer-events-none' : 'bg-green-100 text-green-700 hover:bg-green-200' ?> transition" title="<?= $t['payment_status'] == 'paid' ? 'Already paid' : 'Record payment' ?>">
+                                <i class="fas fa-hand-holding-usd"></i> Pay
+                            </a>
+                            <a href="apply-discount.php?id=<?= $t['id'] ?>" class="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold bg-orange-100 text-orange-700 hover:bg-orange-200 transition" title="Apply discount">
+                                <i class="fas fa-tag"></i> Disc
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 <?php endforeach; ?>
