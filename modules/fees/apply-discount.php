@@ -158,6 +158,9 @@ $js_sym = json_encode(CURRENCY_SYMBOL ?? 'KSh');
 
     pctEl.addEventListener('input', liveUpdate);
     amtEl.addEventListener('input', liveUpdate);
+
+    pctEl.value = '';
+    amtEl.value = '';
 })();
 </script>
 
