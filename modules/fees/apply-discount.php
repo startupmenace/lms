@@ -87,16 +87,16 @@ $js_sym = json_encode(CURRENCY_SYMBOL ?? 'KSh');
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Discount (%)</label>
-                    <input type="number" id="pctInput" step="0.1" min="0" max="100" placeholder="e.g. 10" autocomplete="off"
+                    <input type="text" inputmode="decimal" id="pctInput" placeholder="e.g. 10" autocomplete="off"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Discount Amount <span class="text-red-500">*</span></label>
                     <div class="relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium"><?= CURRENCY_SYMBOL ?? 'KSh' ?></span>
-                        <input type="number" name="discount_amount" id="amtInput" step="0.01" min="0" required autocomplete="off"
+                        <input type="text" inputmode="decimal" name="discount_amount" id="amtInput" required autocomplete="new-password"
                             class="w-full border border-gray-300 rounded-lg pl-12 pr-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
-                            placeholder="Enter amount">
+                            placeholder="Enter amount" value="">
                     </div>
                 </div>
             </div>
