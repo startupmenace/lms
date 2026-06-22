@@ -21,6 +21,40 @@ $upcoming_live = db_get_row("SELECT COUNT(*) as count FROM live_classes WHERE te
 $recent_students = db_get_all("SELECT s.*, c.name as class_name FROM students s LEFT JOIN classes c ON s.class_id = c.id ORDER BY s.created_at DESC LIMIT 5");
 
 if ($is_admin) {
+    $fee_summary = db_get_row("SELECT
+        COALESCE(SUM(total_amount),0) as total_billed,
+        COALESCE(SUM(discount),0) as total_discount,
+        COALESCE(SUM(paid_amount),0) as total_paid,
+        COALESCE(SUM(total_amount - discount - paid_amount),0) as total_due
+        FROM transactions") ?? ['total_billed'=>0,'total_discount'=>0,'total_paid'=>0,'total_due'=>0];
+
+    $fee_summary['total_applicable'] = $fee_summary['total_billed'] - $fee_summary['total_discount'];
+    $fee_summary['collection_pct'] = $fee_summary['total_applicable'] > 0
+        ? round($fee_summary['total_paid'] / $fee_summary['total_applicable'] * 100) : 0;
+
+    $fee_by_class = db_get_all("SELECT c.id, c.name,
+        COALESCE(SUM(t.total_amount),0) as billed,
+        COALESCE(SUM(t.discount),0) as discount,
+        COALESCE(SUM(t.paid_amount),0) as paid,
+        COUNT(DISTINCT t.student_id) as paying_students
+        FROM classes c
+        LEFT JOIN students s ON s.class_id = c.id AND s.is_active = 1
+        LEFT JOIN transactions t ON t.student_id = s.id
+        GROUP BY c.id, c.name ORDER BY c.name");
+
+    $payment_status_counts = db_get_row("SELECT
+        SUM(CASE WHEN payment_status = 'paid' THEN 1 ELSE 0 END) as paid_count,
+        SUM(CASE WHEN payment_status = 'partial' THEN 1 ELSE 0 END) as partial_count,
+        SUM(CASE WHEN payment_status = 'pending' THEN 1 ELSE 0 END) as pending_count
+        FROM transactions") ?? ['paid_count'=>0,'partial_count'=>0,'pending_count'=>0];
+
+    $birthday_month = $_GET['birthday_month'] ?? date('m');
+    $birthday_students = db_get_all("SELECT s.*, c.name as class_name
+        FROM students s
+        LEFT JOIN classes c ON s.class_id = c.id
+        WHERE MONTH(s.date_of_birth) = ? AND s.is_active = 1
+        ORDER BY DAY(s.date_of_birth)", [$birthday_month]);
+
     $my_classes = db_get_all("SELECT c.*,
         (SELECT COUNT(*) FROM students WHERE class_id = c.id) as student_count,
         COALESCE(ROUND((SELECT COUNT(*) FROM attendance WHERE class_id = c.id AND status = 'present') * 100.0 / NULLIF((SELECT COUNT(*) FROM attendance WHERE class_id = c.id), 0), 1), 0) as attendance_rate
@@ -181,6 +215,90 @@ include __DIR__ . '/../../includes/header.php';
         <div class="mt-2 text-xs font-medium text-rose-600"><i class="fas fa-calendar mr-1"></i> Upcoming</div>
     </div>
 </div>
+
+<?php if ($is_admin): ?>
+<div class="mb-6 sm:mb-8">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base sm:text-lg font-bold text-gray-900">
+            <span class="flex items-center gap-2"><i class="fas fa-coins text-teal-600"></i> Fee Overview</span>
+        </h2>
+        <a href="<?= BASE_URL ?>/modules/fees/index.php" class="text-sm font-semibold text-teal-600 hover:text-teal-700 hover:underline focus:outline-none focus:ring-2 focus:ring-teal-400 rounded-lg px-2 py-1">Manage Fees</a>
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Billed</p>
+            <p class="text-lg sm:text-xl font-bold text-gray-900 mt-1"><?= format_currency($fee_summary['total_billed']) ?></p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Discount</p>
+            <p class="text-lg sm:text-xl font-bold text-orange-600 mt-1"><?= format_currency($fee_summary['total_discount']) ?></p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Collected</p>
+            <p class="text-lg sm:text-xl font-bold text-green-600 mt-1"><?= format_currency($fee_summary['total_paid']) ?></p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Due</p>
+            <p class="text-lg sm:text-xl font-bold text-red-600 mt-1"><?= format_currency($fee_summary['total_due']) ?></p>
+        </div>
+    </div>
+    <?php if ($fee_summary['total_applicable'] > 0): ?>
+    <div class="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+        <div class="flex items-center justify-between mb-1.5">
+            <span class="text-sm font-medium text-gray-700">Overall Collection Progress</span>
+            <span class="text-sm font-bold <?= $fee_summary['collection_pct'] >= 100 ? 'text-green-600' : ($fee_summary['collection_pct'] >= 50 ? 'text-amber-600' : 'text-red-600') ?>"><?= $fee_summary['collection_pct'] ?>%</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+            <div class="h-full rounded-full <?= $fee_summary['collection_pct'] >= 100 ? 'bg-green-500' : ($fee_summary['collection_pct'] >= 50 ? 'bg-amber-500' : 'bg-red-500') ?>" style="width: <?= min($fee_summary['collection_pct'], 100) ?>%"></div>
+        </div>
+    </div>
+    <?php endif; ?>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-4 sm:p-5">
+            <h3 class="text-sm font-bold text-gray-900 mb-3">Fee Collection by Class</h3>
+            <canvas id="feeByClassChart" height="220"></canvas>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-4 sm:p-5">
+            <h3 class="text-sm font-bold text-gray-900 mb-3">Payment Status</h3>
+            <canvas id="feeStatusPieChart" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="mb-6 sm:mb-8">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base sm:text-lg font-bold text-gray-900">
+            <span class="flex items-center gap-2"><i class="fas fa-cake-candles text-pink-500"></i> Student Birthdays</span>
+        </h2>
+        <form method="GET" class="flex items-center gap-2">
+            <select name="birthday_month" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-teal-500 outline-none bg-white">
+                <?php for ($m = 1; $m <= 12; $m++): ?>
+                <option value="<?= sprintf('%02d', $m) ?>" <?= $birthday_month == sprintf('%02d', $m) ? 'selected' : '' ?>><?= date('F', mktime(0, 0, 0, $m, 1)) ?></option>
+                <?php endfor; ?>
+            </select>
+        </form>
+    </div>
+    <?php if (empty($birthday_students)): ?>
+    <div class="bg-white rounded-xl border border-gray-200 p-6 text-center">
+        <i class="fas fa-calendar text-3xl text-gray-300 mb-2 block"></i>
+        <p class="text-gray-500 text-sm">No birthdays this month</p>
+    </div>
+    <?php else: ?>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+        <?php foreach ($birthday_students as $b): ?>
+        <div class="bg-white rounded-xl border border-gray-200 p-3 text-center hover:shadow-md hover:border-pink-200 transition">
+            <div class="w-10 h-10 mx-auto rounded-full bg-pink-100 flex items-center justify-center mb-2">
+                <i class="fas fa-cake-candles text-pink-500"></i>
+            </div>
+            <p class="text-sm font-bold text-gray-900 truncate"><?= sanitize($b['parent_name'] ?? 'N/A') ?></p>
+            <p class="text-xs text-gray-500"><?= sanitize($b['class_name'] ?? '') ?></p>
+            <p class="text-xs font-semibold text-pink-600 mt-1"><?= date('j M', strtotime($b['date_of_birth'])) ?></p>
+        </div>
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+</div>
+<?php endif; ?>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
     <div class="lg:col-span-2 space-y-4 sm:space-y-6">
@@ -409,6 +527,72 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<?php if ($is_admin): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var feeCtx = document.getElementById('feeByClassChart');
+    if (feeCtx) {
+        var classes = <?= json_encode(array_column($fee_by_class, 'name')) ?>;
+        var billed = <?= json_encode(array_map(function($c){return (float)$c['billed'];}, $fee_by_class)) ?>;
+        var paid = <?= json_encode(array_map(function($c){return (float)$c['paid'];}, $fee_by_class)) ?>;
+        new Chart(feeCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: classes,
+                datasets: [{
+                    label: 'Billed',
+                    data: billed,
+                    backgroundColor: 'rgba(13, 148, 136, 0.6)',
+                    borderColor: '#0d9488',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }, {
+                    label: 'Collected',
+                    data: paid,
+                    backgroundColor: 'rgba(34, 197, 94, 0.6)',
+                    borderColor: '#22c55e',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: { legend: { display: true, position: 'top', labels: { usePointStyle: true, padding: 12, font: { size: 11, weight: 'bold' } } } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 } } },
+                    x: { grid: { display: false }, ticks: { font: { size: 10, weight: 'bold' } } }
+                },
+                interaction: { intersect: false, mode: 'index' }
+            }
+        });
+    }
+    var pieCtx = document.getElementById('feeStatusPieChart');
+    if (pieCtx) {
+        new Chart(pieCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Paid', 'Partial', 'Pending'],
+                datasets: [{
+                    data: [<?= (int)$payment_status_counts['paid_count'] ?>, <?= (int)$payment_status_counts['partial_count'] ?>, <?= (int)$payment_status_counts['pending_count'] ?>],
+                    backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, padding: 10, font: { size: 11, weight: 'bold' } } }
+                },
+                cutout: '60%'
+            }
+        });
+    }
+});
+</script>
+<?php endif; ?>
 <script>
 (function() {
     var btn = document.getElementById('checkin-btn');
