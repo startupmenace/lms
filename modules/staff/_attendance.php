@@ -77,10 +77,20 @@ if ($attendance_tab === 'mark') {
                                 </select>
                             </td>
                             <td class="py-2 px-2 text-center hidden sm:table-cell">
-                                <input type="time" name="check_in[<?= $t['id'] ?>]" value="<?= $att['check_in'] ?? '' ?>" class="border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-teal-500 outline-none w-24">
+                                <div class="flex items-center justify-center gap-1">
+                                    <input type="time" name="check_in[<?= $t['id'] ?>]" value="<?= $att['check_in'] ?? '' ?>" class="border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-teal-500 outline-none w-24">
+                                    <?php if ($att && $att['check_in'] && $att['marked_by'] == $t['id']): ?>
+                                    <span class="text-[9px] bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded-full font-medium whitespace-nowrap">Self</span>
+                                    <?php endif; ?>
+                                </div>
                             </td>
                             <td class="py-2 px-2 text-center hidden sm:table-cell">
-                                <input type="time" name="check_out[<?= $t['id'] ?>]" value="<?= $att['check_out'] ?? '' ?>" class="border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-teal-500 outline-none w-24">
+                                <div class="flex items-center justify-center gap-1">
+                                    <input type="time" name="check_out[<?= $t['id'] ?>]" value="<?= $att['check_out'] ?? '' ?>" class="border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-teal-500 outline-none w-24">
+                                    <?php if ($att && $att['check_out'] && $att['marked_by'] == $t['id']): ?>
+                                    <span class="text-[9px] bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded-full font-medium whitespace-nowrap">Self</span>
+                                    <?php endif; ?>
+                                </div>
                             </td>
                             <td class="py-2 px-2 hidden md:table-cell">
                                 <input type="text" name="remarks[<?= $t['id'] ?>]" value="<?= sanitize($att['remarks'] ?? '') ?>" placeholder="Optional" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-teal-500 outline-none">
