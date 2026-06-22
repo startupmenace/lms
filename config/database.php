@@ -1,11 +1,12 @@
 <?php
-$db = parse_url($_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL'));
-
-define('DB_HOST', $db['host']);
-define('DB_USER', $db['user']);
-define('DB_PASS', $db['pass']);
-define('DB_NAME', ltrim($db['path'], '/'));
-define('DB_PORT', $db['port'] ?? 3306);
+if (!defined('DB_HOST')) {
+    $db = parse_url($_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL'));
+    define('DB_HOST', $db['host']);
+    define('DB_USER', $db['user']);
+    define('DB_PASS', $db['pass']);
+    define('DB_NAME', ltrim($db['path'], '/'));
+    define('DB_PORT', $db['port'] ?? 3306);
+}
 function db_connect() {
     $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     if ($conn->connect_error) {

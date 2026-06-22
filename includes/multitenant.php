@@ -12,6 +12,16 @@
  *   - super_admins : platform-level admin accounts
  */
 
+// Bootstrap DB constants if included before config/database.php
+if (!defined('DB_HOST')) {
+    $db = parse_url($_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL'));
+    define('DB_HOST', $db['host']);
+    define('DB_USER', $db['user']);
+    define('DB_PASS', $db['pass']);
+    define('DB_NAME', ltrim($db['path'], '/'));
+    define('DB_PORT', $db['port'] ?? 3306);
+}
+
 // ── Check if router DB exists ────────────────────────
 function router_db_exists() {
     $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, '', DB_PORT);
