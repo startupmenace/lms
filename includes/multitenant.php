@@ -82,7 +82,8 @@ function resolve_school_from_domain($host = null) {
     if (in_array($subdomain, ['www', 'admin'], true)) return null;
 
     $conn = router_db_connect();
-    $stmt = $conn->prepare("SELECT * FROM schools WHERE subdomain = ? AND is_active = 1 LIMIT 1");
+    // Look for active AND inactive schools — let caller decide what to show
+    $stmt = $conn->prepare("SELECT * FROM schools WHERE subdomain = ? LIMIT 1");
     $stmt->bind_param('s', $subdomain);
     $stmt->execute();
     $school = $stmt->get_result()->fetch_assoc();
@@ -97,7 +98,19 @@ function resolve_school_from_domain($host = null) {
 //   maybe_enable_multitenant();
 function maybe_enable_multitenant() {
     $school = resolve_school_from_domain();
-    if (!$school) return; // Stay on original DB
+    if (!$school) return; // Unknown subdomain — stay on original DB
+    if (!$school['is_active']) {
+        // School is disabled — show clear message instead of silent fallback
+        http_response_code(503);
+        echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>School Disabled</title>';
+        echo '<style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f9fafb;color:#374151;text-align:center;padding:2rem}</style>';
+        echo '</head><body><div><div style="font-size:4rem;margin-bottom:1rem">&#128274;</div>';
+        echo '<h1 style="font-size:1.5rem;font-weight:700;margin-bottom:.5rem">School Disabled</h1>';
+        echo '<p style="color:#6b7280">' . htmlspecialchars($school['site_name']) . ' is currently disabled.</p>';
+        echo '<p style="color:#9ca3af;font-size:.875rem;margin-top:1.5rem">Contact your platform administrator to reactivate.</p>';
+        echo '</div></body></html>';
+        exit;
+    }
 
     // Override DB constants for this school
     $GLOBALS['_mt_db_host'] = $school['db_host'] ?: DB_HOST;
