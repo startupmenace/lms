@@ -21,21 +21,39 @@ if (!defined('DB_HOST')) {
     define('DB_NAME', ltrim($db['path'], '/'));
     define('DB_PORT', $db['port'] ?? 3306);
 }
+// Router DB can be on a separate MySQL container
+if (!defined('ROUTER_DB_HOST')) {
+    $rurl = getenv('ROUTER_DATABASE_URL');
+    if ($rurl) {
+        $rdb = parse_url($rurl);
+        define('ROUTER_DB_HOST', $rdb['host']);
+        define('ROUTER_DB_USER', $rdb['user']);
+        define('ROUTER_DB_PASS', $rdb['pass']);
+        define('ROUTER_DB_NAME', ltrim($rdb['path'], '/'));
+        define('ROUTER_DB_PORT', $rdb['port'] ?? 3306);
+    } else {
+        define('ROUTER_DB_HOST', DB_HOST);
+        define('ROUTER_DB_USER', DB_USER);
+        define('ROUTER_DB_PASS', DB_PASS);
+        define('ROUTER_DB_NAME', 'teachbetter_router');
+        define('ROUTER_DB_PORT', DB_PORT);
+    }
+}
 
 // ── Check if router DB exists ────────────────────────
 function router_db_exists() {
-    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, '', DB_PORT);
+    $conn = new mysqli(ROUTER_DB_HOST, ROUTER_DB_USER, ROUTER_DB_PASS, '', ROUTER_DB_PORT);
     if ($conn->connect_error) return false;
-    $exists = $conn->select_db('teachbetter_router');
+    $exists = $conn->select_db(ROUTER_DB_NAME);
     $conn->close();
     return $exists;
 }
 
 // ── Router DB connection ──────────────────────────────
 function router_db_connect() {
-    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, '', DB_PORT);
+    $conn = new mysqli(ROUTER_DB_HOST, ROUTER_DB_USER, ROUTER_DB_PASS, '', ROUTER_DB_PORT);
     if ($conn->connect_error) die("Router DB: " . $conn->connect_error);
-    $conn->select_db('teachbetter_router');
+    $conn->select_db(ROUTER_DB_NAME);
     $conn->set_charset("utf8mb4");
     return $conn;
 }
@@ -44,8 +62,14 @@ function router_db_connect() {
 function resolve_school_from_domain($host = null) {
     $host = $host ?: ($_SERVER['HTTP_HOST'] ?? '');
     $parts = explode('.', $host);
-    $subdomain = (count($parts) > 2) ? $parts[0] : '';
-    if (!$subdomain || in_array($subdomain, ['www', 'admin'], true)) return null;
+    // Known second-level domains (multi-part TLDs like .co.ke, .com.au)
+    $known_sld = ['co', 'com', 'org', 'net', 'gov', 'ac', 'sch', 'me', 'edu'];
+    $end = count($parts) - 1;
+    // Root domain is last 2 parts (e.g., example.com) or last 3 (e.g., example.co.ke)
+    $root_len = ($end >= 2 && in_array($parts[$end - 1], $known_sld)) ? 3 : 2;
+    if (count($parts) <= $root_len) return null; // bare domain, no subdomain
+    $subdomain = $parts[0];
+    if (in_array($subdomain, ['www', 'admin'], true)) return null;
 
     $conn = router_db_connect();
     $stmt = $conn->prepare("SELECT * FROM schools WHERE subdomain = ? AND is_active = 1 LIMIT 1");
