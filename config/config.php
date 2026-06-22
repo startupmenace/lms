@@ -14,5 +14,9 @@ define('JAAS_TENANT_KEY', 'vpaas-magic-cookie-f1accb5fcc5a4ba18d56de54efec95a5')
 define('JAAS_DOMAIN', '8x8.vc');
 define('JAAS_APP_ID', 'vpaas-magic-cookie-f1accb5fcc5a4ba18d56de54efec95a5');
 
+// Multi-tenant subdomain routing — comment out to disable
+require_once __DIR__ . '/../includes/multitenant.php';
+maybe_enable_multitenant();
+
 date_default_timezone_set(TIMEZONE);
 session_start();
