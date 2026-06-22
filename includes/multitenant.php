@@ -6,7 +6,7 @@
 // sanitize() for super-admin pages (they don't load includes/functions.php)
 if (!function_exists('sanitize')) {
     function sanitize($input) {
-        return htmlspecialchars($input ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        return htmlspecialchars(strip_tags(trim($input ?? '')), ENT_QUOTES, 'UTF-8');
     }
 }
 

@@ -1,6 +1,8 @@
 <?php
-function sanitize($input) {
-    return htmlspecialchars(strip_tags(trim($input)), ENT_QUOTES, 'UTF-8');
+if (!function_exists('sanitize')) {
+    function sanitize($input) {
+        return htmlspecialchars(strip_tags(trim($input)), ENT_QUOTES, 'UTF-8');
+    }
 }
 
 function redirect($url) {
