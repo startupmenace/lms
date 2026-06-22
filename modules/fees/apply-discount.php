@@ -1,4 +1,6 @@
 <?php
+@ini_set('opcache.revalidate_freq', 0);
+@opcache_invalidate(__FILE__, true);
 require_once __DIR__ . '/../../includes/session.php';
 require_once __DIR__ . '/../../includes/functions.php';
 require_role('admin');
