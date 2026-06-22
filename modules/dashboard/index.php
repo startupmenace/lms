@@ -63,6 +63,29 @@ if ($hour < 12) $greeting = 'Good morning';
 elseif ($hour < 17) $greeting = 'Good afternoon';
 else $greeting = 'Good evening';
 
+// Check-in status for staff attendance
+$checkin_today = db_get_row("SELECT check_in, check_out FROM staff_attendance WHERE user_id=? AND date=?", [$user_id, date('Y-m-d')]);
+
+// Compute overall grade from last 30 days
+$grade_stats = db_get_row("SELECT
+    COUNT(*) as total,
+    SUM(CASE WHEN status IN ('present','late') THEN 1 ELSE 0 END) as present
+    FROM staff_attendance
+    WHERE user_id=? AND date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)", [$user_id]);
+
+if ($grade_stats && $grade_stats['total'] > 0) {
+    $rate = round($grade_stats['present'] * 100 / $grade_stats['total']);
+    if ($rate >= 90) {
+        $grade = ['code' => 'EE', 'label' => 'Exceeding Expectation', 'class' => 'bg-green-100 text-green-800'];
+    } elseif ($rate >= 75) {
+        $grade = ['code' => 'ME', 'label' => 'Meeting Expectation', 'class' => 'bg-amber-100 text-amber-800'];
+    } else {
+        $grade = ['code' => 'BE', 'label' => 'Below Expectation', 'class' => 'bg-red-100 text-red-800'];
+    }
+} else {
+    $grade = null;
+}
+
 include __DIR__ . '/../../includes/header.php';
 ?>
 
@@ -81,6 +104,29 @@ include __DIR__ . '/../../includes/header.php';
             <a href="<?= BASE_URL ?>/modules/attendance/index.php" class="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-white/50">
                 <i class="fas fa-calendar-check"></i> Attendance
             </a>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl border border-gray-200 p-4 sm:p-5 mb-6 sm:mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-xl bg-teal-100 flex items-center justify-center">
+                <i class="fas fa-fingerprint text-2xl text-teal-600"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Staff Attendance</h3>
+                <p class="text-lg font-bold text-gray-900 mt-0.5" id="checkin-status">Loading...</p>
+                <p class="text-xs text-gray-500 mt-0.5" id="checkin-times">--</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <?php if ($grade): ?>
+            <span class="text-sm font-bold px-3 py-1.5 rounded-full <?= $grade['class'] ?>" title="<?= sanitize($grade['label']) ?>"><?= $grade['code'] ?></span>
+            <?php endif; ?>
+            <button id="checkin-btn" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-teal-400 bg-gray-300 text-gray-500 cursor-not-allowed" disabled>
+                <span id="checkin-btn-text">Loading...</span>
+            </button>
         </div>
     </div>
 </div>
@@ -361,6 +407,101 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+</script>
+
+<script>
+(function() {
+    var btn = document.getElementById('checkin-btn');
+    var statusEl = document.getElementById('checkin-status');
+    var timesEl = document.getElementById('checkin-times');
+    var btnText = document.getElementById('checkin-btn-text');
+    var ajaxUrl = '<?= BASE_URL ?>/modules/dashboard/ajax-checkin.php';
+
+    function formatTime(t) {
+        if (!t) return '--';
+        var parts = t.split(':');
+        var d = new Date();
+        d.setHours(parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2] || 0));
+        return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    }
+
+    function updateUI(status, checkIn, checkOut) {
+        if (status === 'checked_in') {
+            statusEl.textContent = 'Checked In';
+            statusEl.className = 'text-lg font-bold text-green-700 mt-0.5';
+            timesEl.textContent = 'In: ' + formatTime(checkIn);
+            btn.innerHTML = '<span>Check Out</span>';
+            btn.className = 'inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-teal-400 bg-orange-500 text-white hover:bg-orange-600';
+            btn.dataset.action = 'checkout';
+            btn.disabled = false;
+        } else if (status === 'checked_out') {
+            statusEl.textContent = 'Checked Out';
+            statusEl.className = 'text-lg font-bold text-gray-500 mt-0.5';
+            timesEl.textContent = 'In: ' + formatTime(checkIn) + ' \u00b7 Out: ' + formatTime(checkOut);
+            btn.innerHTML = '<span>Completed</span>';
+            btn.className = 'inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-teal-400 bg-gray-300 text-gray-500 cursor-not-allowed';
+            btn.disabled = true;
+        } else {
+            statusEl.textContent = 'Not Checked In';
+            statusEl.className = 'text-lg font-bold text-gray-400 mt-0.5';
+            timesEl.textContent = 'Start your day';
+            btn.innerHTML = '<span>Check In</span>';
+            btn.className = 'inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-teal-400 bg-teal-600 text-white hover:bg-teal-700';
+            btn.dataset.action = 'checkin';
+            btn.disabled = false;
+        }
+    }
+
+    function fetchStatus() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', ajaxUrl, true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onload = function() {
+            try {
+                var res = JSON.parse(xhr.responseText);
+                if (res.status) updateUI(res.status, res.check_in, res.check_out);
+            } catch(e) { statusEl.textContent = 'Error loading'; }
+        };
+        xhr.onerror = function() { statusEl.textContent = 'Offline'; };
+        xhr.send('action=status');
+    }
+
+    btn.addEventListener('click', function() {
+        if (btn.disabled) return;
+        var action = btn.dataset.action || 'checkin';
+        var originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processing...';
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', ajaxUrl, true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onload = function() {
+            try {
+                var res = JSON.parse(xhr.responseText);
+                if (res.ok) {
+                    fetchStatus();
+                } else {
+                    alert(res.msg);
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            } catch(e) {
+                alert('Server error. Please try again.');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        };
+        xhr.onerror = function() {
+            alert('Network error. Please try again.');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        };
+        xhr.send('action=' + action);
+    });
+
+    fetchStatus();
+})();
 </script>
 
 <?php include __DIR__ . '/../../includes/footer.php'; ?>
