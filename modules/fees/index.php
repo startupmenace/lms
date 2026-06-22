@@ -377,14 +377,9 @@ include __DIR__ . '/../../includes/header.php';
                         <?php endif; ?>
                     </td>
                     <td class="py-3 px-3">
-                        <div class="flex items-center justify-center gap-1">
-                            <a href="record-payment.php?id=<?= $t['id'] ?>" class="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold <?= $t['payment_status'] == 'paid' ? 'bg-gray-100 text-gray-400 cursor-not-allowed pointer-events-none' : 'bg-green-100 text-green-700 hover:bg-green-200' ?> transition" title="<?= $t['payment_status'] == 'paid' ? 'Already paid' : 'Record payment' ?>">
-                                <i class="fas fa-hand-holding-usd"></i> Pay
-                            </a>
-                            <a href="apply-discount.php?id=<?= $t['id'] ?>" class="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold bg-orange-100 text-orange-700 hover:bg-orange-200 transition" title="Apply discount">
-                                <i class="fas fa-tag"></i> Disc
-                            </a>
-                        </div>
+                        <a href="apply-discount.php?id=<?= $t['id'] ?>" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded text-[11px] font-bold bg-orange-100 text-orange-700 hover:bg-orange-200 transition" title="Apply discount">
+                            <i class="fas fa-tag"></i> Discount
+                        </a>
                     </td>
                 </tr>
                 <?php endforeach; ?>

@@ -311,7 +311,7 @@ include __DIR__ . '/../../includes/header.php';
                                 <?php if ($existing_bill): ?>
                                 <span class="text-xs text-gray-400">—</span>
                                 <?php else: ?>
-                                <input type="number" name="discount[<?= $s['id'] ?>]" value="0" step="0.01" min="0" max="<?= $base_total ?>" class="w-20 border border-gray-200 rounded px-2 py-1 text-xs text-right focus:ring-1 focus:ring-teal-500 outline-none">
+                                <input type="number" name="discount[<?= $s['id'] ?>]" step="0.01" min="0" max="<?= $base_total ?>" placeholder="0" class="w-20 border border-gray-200 rounded px-2 py-1 text-xs text-right focus:ring-1 focus:ring-teal-500 outline-none">
                                 <?php endif; ?>
                             </td>
                             <td class="py-3 px-4 text-right font-semibold"><?= format_currency($existing_bill ? 0 : $base_total) ?></td>
