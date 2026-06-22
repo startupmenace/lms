@@ -96,9 +96,9 @@ $current_pct = $total > 0 ? round($current_discount / $total * 100, 1) : 0;
                     <label class="block text-sm font-medium text-gray-700 mb-1">Discount Amount <span class="text-red-500">*</span></label>
                     <div class="relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium"><?= CURRENCY_SYMBOL ?? 'KSh' ?></span>
-                        <input type="number" name="discount_amount" id="amtInput" step="0.01" min="0" max="<?= $max_allowed ?>" required
+                        <input type="number" name="discount_amount" id="amtInput" step="0.01" min="0" required
                             class="w-full border border-gray-300 rounded-lg pl-12 pr-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
-                            placeholder="0.00">
+                            placeholder="Enter amount">
                     </div>
                 </div>
             </div>
