@@ -15,6 +15,9 @@ include __DIR__ . '/../../includes/header.php';
             <a href="?tab=structures" class="px-6 py-3 text-sm font-medium <?= $tab == 'structures' ? 'text-teal-600 border-b-2 border-teal-600' : 'text-gray-500 hover:text-gray-700' ?>">
                 <i class="fas fa-layer-group mr-2"></i>Fee Structure
             </a>
+            <a href="?tab=reports" class="px-6 py-3 text-sm font-medium <?= $tab == 'reports' ? 'text-teal-600 border-b-2 border-teal-600' : 'text-gray-500 hover:text-gray-700' ?>">
+                <i class="fas fa-file-alt mr-2"></i>Reports
+            </a>
             <a href="?tab=collection" class="px-6 py-3 text-sm font-medium <?= $tab == 'collection' ? 'text-teal-600 border-b-2 border-teal-600' : 'text-gray-500 hover:text-gray-700' ?>">
                 <i class="fas fa-hand-holding-usd mr-2"></i>Fee Collection
             </a>
@@ -82,13 +85,147 @@ include __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
     </div>
 
+    <?php elseif ($tab == 'reports'): ?>
+    <?php
+    $report_class = (int)($_GET['report_class'] ?? 0);
+    $report_term = $_GET['report_term'] ?? '';
+    $report_session = $_GET['report_session'] ?? date('Y') . '-' . (date('Y') + 1);
+    $classes = db_get_all("SELECT * FROM classes WHERE is_active = 1 ORDER BY name");
+
+    $report_data = [];
+    if ($report_class) {
+        $where = "s.class_id = ? AND s.is_active = 1";
+        $params = [$report_class];
+        if ($report_term) { $where .= " AND t.term = ?"; $params[] = $report_term; }
+        if ($report_session) { $where .= " AND t.session_year = ?"; $params[] = $report_session; }
+
+        $report_data = db_get_all("SELECT s.id as student_id, s.parent_name, s.enrollment_id, c.name as class_name,
+            COALESCE(t.id,0) as tx_id, t.invoice_no, t.term, t.session_year,
+            COALESCE(t.total_amount,0) as billed, COALESCE(t.discount,0) as discount,
+            COALESCE(t.paid_amount,0) as paid, t.payment_status
+            FROM students s
+            LEFT JOIN classes c ON s.class_id = c.id
+            LEFT JOIN transactions t ON t.student_id = s.id
+            WHERE $where
+            ORDER BY s.parent_name, t.term", $params);
+
+        // Group by student
+        $grouped = [];
+        foreach ($report_data as $r) {
+            $sid = $r['student_id'];
+            if (!isset($grouped[$sid])) {
+                $grouped[$sid] = ['name' => $r['parent_name'], 'enrollment' => $r['enrollment_id'], 'class' => $r['class_name'], 'invoices' => [], 'totals' => ['billed'=>0,'discount'=>0,'paid'=>0]];
+            }
+            $grouped[$sid]['invoices'][] = $r;
+            $grouped[$sid]['totals']['billed'] += $r['billed'];
+            $grouped[$sid]['totals']['discount'] += $r['discount'];
+            $grouped[$sid]['totals']['paid'] += $r['paid'];
+        }
+    }
+    ?>
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
+        <form method="GET" class="flex flex-wrap items-end gap-3 mb-6">
+            <input type="hidden" name="tab" value="reports">
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Class <span class="text-red-500">*</span></label>
+                <select name="report_class" required class="border border-gray-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-teal-500 outline-none" onchange="this.form.submit()">
+                    <option value="">Select Class</option>
+                    <?php foreach ($classes as $c): ?>
+                    <option value="<?= $c['id'] ?>" <?= $report_class == $c['id'] ? 'selected' : '' ?>><?= sanitize($c['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Term</label>
+                <select name="report_term" class="border border-gray-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-teal-500 outline-none">
+                    <option value="">All Terms</option>
+                    <option value="Term 1" <?= $report_term == 'Term 1' ? 'selected' : '' ?>>Term 1</option>
+                    <option value="Term 2" <?= $report_term == 'Term 2' ? 'selected' : '' ?>>Term 2</option>
+                    <option value="Term 3" <?= $report_term == 'Term 3' ? 'selected' : '' ?>>Term 3</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Session</label>
+                <input type="text" name="report_session" value="<?= sanitize($report_session) ?>" class="border border-gray-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-teal-500 outline-none w-28">
+            </div>
+            <div>
+                <button type="submit" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-xs font-medium hover:bg-teal-700 transition"><i class="fas fa-search mr-1"></i> Generate Report</button>
+            </div>
+        </form>
+
+        <?php if ($report_class): ?>
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-200">
+                        <th class="text-left py-2 px-2 font-bold text-gray-700 uppercase tracking-wider">Student</th>
+                        <th class="text-left py-2 px-2 font-bold text-gray-700 uppercase tracking-wider">Enrollment</th>
+                        <th class="text-left py-2 px-2 font-bold text-gray-700 uppercase tracking-wider">Class</th>
+                        <th class="text-right py-2 px-2 font-bold text-gray-700 uppercase tracking-wider">Billed</th>
+                        <th class="text-right py-2 px-2 font-bold text-gray-700 uppercase tracking-wider">Discount</th>
+                        <th class="text-right py-2 px-2 font-bold text-gray-700 uppercase tracking-wider">Applicable</th>
+                        <th class="text-right py-2 px-2 font-bold text-gray-700 uppercase tracking-wider">Paid</th>
+                        <th class="text-right py-2 px-2 font-bold text-gray-700 uppercase tracking-wider">Balance</th>
+                        <th class="text-center py-2 px-2 font-bold text-gray-700 uppercase tracking-wider">Term</th>
+                        <th class="text-left py-2 px-2 font-bold text-gray-700 uppercase tracking-wider">Invoice</th>
+                        <th class="text-center py-2 px-2 font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($grouped)): ?>
+                    <tr><td colspan="11" class="py-10 text-center text-gray-400">No data for the selected filters.</td></tr>
+                    <?php else: ?>
+                    <?php foreach ($grouped as $sid => $g): 
+                        $applicable = $g['totals']['billed'] - $g['totals']['discount'];
+                        $balance = $applicable - $g['totals']['paid'];
+                    ?>
+                    <tr class="border-b border-gray-100 bg-gray-50/50">
+                        <td class="py-2 px-2 font-semibold text-gray-900"><?= sanitize($g['name']) ?></td>
+                        <td class="py-2 px-2 text-gray-600"><?= sanitize($g['enrollment']) ?></td>
+                        <td class="py-2 px-2 text-gray-600"><?= sanitize($g['class']) ?></td>
+                        <td class="py-2 px-2 text-right font-semibold"><?= format_currency($g['totals']['billed']) ?></td>
+                        <td class="py-2 px-2 text-right text-orange-600"><?= format_currency($g['totals']['discount']) ?></td>
+                        <td class="py-2 px-2 text-right font-semibold"><?= format_currency($applicable) ?></td>
+                        <td class="py-2 px-2 text-right text-green-600 font-semibold"><?= format_currency($g['totals']['paid']) ?></td>
+                        <td class="py-2 px-2 text-right font-bold <?= $balance > 0 ? 'text-red-600' : 'text-green-600' ?>"><?= format_currency($balance) ?></td>
+                        <td colspan="3"></td>
+                    </tr>
+                    <?php foreach ($g['invoices'] as $inv): 
+                        $inv_applicable = $inv['billed'] - $inv['discount'];
+                        $inv_balance = $inv_applicable - $inv['paid'];
+                    ?>
+                    <tr class="border-b border-gray-100 hover:bg-gray-50">
+                        <td colspan="3"></td>
+                        <td class="py-1.5 px-2 text-right text-gray-700"><?= format_currency($inv['billed']) ?></td>
+                        <td class="py-1.5 px-2 text-right text-orange-600"><?= format_currency($inv['discount']) ?></td>
+                        <td class="py-1.5 px-2 text-right text-gray-700"><?= format_currency($inv_applicable) ?></td>
+                        <td class="py-1.5 px-2 text-right text-green-600"><?= format_currency($inv['paid']) ?></td>
+                        <td class="py-1.5 px-2 text-right <?= $inv_balance > 0 ? 'text-red-600 font-medium' : 'text-green-600' ?>"><?= format_currency($inv_balance) ?></td>
+                        <td class="py-1.5 px-2 text-center text-gray-600"><?= sanitize($inv['term'] ?? '') ?></td>
+                        <td class="py-1.5 px-2 text-gray-600">#<?= sanitize($inv['invoice_no'] ?? '') ?></td>
+                        <td class="py-1.5 px-2 text-center">
+                            <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full <?= $inv['payment_status'] == 'paid' ? 'bg-green-100 text-green-700' : ($inv['payment_status'] == 'partial' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700') ?>">
+                                <?= ucfirst($inv['payment_status'] ?? 'N/A') ?>
+                            </span>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                    <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php endif; ?>
+    </div>
+
     <?php elseif ($tab == 'collection'): ?>
     <?php
     $classes_list = db_get_all("SELECT c.*, 
         (SELECT COUNT(*) FROM students WHERE class_id = c.id) as student_count,
         (SELECT COALESCE(SUM(total_amount), 0) FROM transactions t JOIN students s ON t.student_id = s.id WHERE s.class_id = c.id) as total_billed,
+        (SELECT COALESCE(SUM(discount), 0) FROM transactions t JOIN students s ON t.student_id = s.id WHERE s.class_id = c.id) as total_discount,
         (SELECT COALESCE(SUM(paid_amount), 0) FROM transactions t JOIN students s ON t.student_id = s.id WHERE s.class_id = c.id) as total_paid,
-        (SELECT COALESCE(SUM(due_amount), 0) FROM transactions t JOIN students s ON t.student_id = s.id WHERE s.class_id = c.id) as total_due
+        (SELECT COALESCE(SUM(total_amount - discount - paid_amount), 0) FROM transactions t JOIN students s ON t.student_id = s.id WHERE s.class_id = c.id) as total_due
         FROM classes c ORDER BY c.name");
     ?>
     <div class="flex items-center justify-between mb-6">
@@ -105,7 +242,8 @@ include __DIR__ . '/../../includes/header.php';
         </div>
         <?php else: ?>
         <?php foreach ($classes_list as $c): 
-            $pct = $c['total_billed'] > 0 ? round($c['total_paid'] / $c['total_billed'] * 100) : 0;
+            $applicable = $c['total_billed'] - $c['total_discount'];
+            $pct = $applicable > 0 ? round($c['total_paid'] / $applicable * 100) : 0;
             $bar_color = $pct >= 100 ? 'bg-green-500' : ($pct >= 50 ? 'bg-amber-500' : 'bg-red-500');
             $label_color = $pct >= 100 ? 'text-green-600' : ($pct >= 50 ? 'text-amber-600' : 'text-red-600');
         ?>
@@ -118,6 +256,14 @@ include __DIR__ . '/../../includes/header.php';
                 <div class="flex justify-between text-sm">
                     <span class="text-gray-500">Total Billed</span>
                     <span class="font-semibold text-gray-900"><?= format_currency($c['total_billed']) ?></span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">Discounts</span>
+                    <span class="font-semibold text-orange-600"><?= format_currency($c['total_discount']) ?></span>
+                </div>
+                <div class="flex justify-between text-sm pt-1 border-t border-dashed border-gray-200">
+                    <span class="font-medium text-gray-700">Total Applicable</span>
+                    <span class="font-bold text-gray-900"><?= format_currency($applicable) ?></span>
                 </div>
                 <div class="flex justify-between text-sm">
                     <span class="text-gray-500">Total Paid</span>
@@ -150,18 +296,25 @@ include __DIR__ . '/../../includes/header.php';
         LEFT JOIN classes c ON s.class_id = c.id
         ORDER BY t.created_at DESC LIMIT 30");
 
-    $tx_summary = db_get_row("SELECT COALESCE(SUM(total_amount),0) as total, COALESCE(SUM(paid_amount),0) as paid, COALESCE(SUM(due_amount),0) as due FROM transactions") ?? ['total'=>0,'paid'=>0,'due'=>0];
-    $tx_pct = $tx_summary['total'] > 0 ? round($tx_summary['paid'] / $tx_summary['total'] * 100) : 0;
+    $tx_summary = db_get_row("SELECT
+        COALESCE(SUM(total_amount),0) as billed,
+        COALESCE(SUM(discount),0) as discount,
+        COALESCE(SUM(total_amount - discount),0) as applicable,
+        COALESCE(SUM(paid_amount),0) as paid,
+        COALESCE(SUM(total_amount - discount - paid_amount),0) as due
+        FROM transactions") ?? ['billed'=>0,'discount'=>0,'applicable'=>0,'paid'=>0,'due'=>0];
+    $tx_pct = $tx_summary['applicable'] > 0 ? round($tx_summary['paid'] / $tx_summary['applicable'] * 100) : 0;
     $tx_bar = $tx_pct >= 100 ? 'bg-green-500' : ($tx_pct >= 50 ? 'bg-amber-500' : 'bg-red-500');
     $tx_label = $tx_pct >= 100 ? 'text-green-600' : ($tx_pct >= 50 ? 'text-amber-600' : 'text-red-600');
     ?>
-    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-xl border border-gray-200 p-4"><p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Billed</p><p class="text-xl font-bold text-gray-900 mt-1"><?= format_currency($tx_summary['total']) ?></p></div>
+    <div class="grid grid-cols-1 sm:grid-cols-5 gap-4 mb-6">
+        <div class="bg-white rounded-xl border border-gray-200 p-4"><p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Billed</p><p class="text-xl font-bold text-gray-900 mt-1"><?= format_currency($tx_summary['billed']) ?></p></div>
+        <div class="bg-white rounded-xl border border-gray-200 p-4"><p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Discounts</p><p class="text-xl font-bold text-orange-600 mt-1"><?= format_currency($tx_summary['discount']) ?></p></div>
+        <div class="bg-white rounded-xl border border-gray-200 p-4"><p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Applicable</p><p class="text-xl font-bold text-gray-900 mt-1"><?= format_currency($tx_summary['applicable']) ?></p></div>
         <div class="bg-white rounded-xl border border-gray-200 p-4"><p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Collected</p><p class="text-xl font-bold text-green-600 mt-1"><?= format_currency($tx_summary['paid']) ?></p></div>
         <div class="bg-white rounded-xl border border-gray-200 p-4"><p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Due</p><p class="text-xl font-bold text-red-600 mt-1"><?= format_currency($tx_summary['due']) ?></p></div>
-        <div class="bg-white rounded-xl border border-gray-200 p-4"><p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Collection Rate</p><p class="text-xl font-bold <?= $tx_label ?> mt-1"><?= $tx_pct ?>%</p></div>
     </div>
-    <?php if ($tx_summary['total'] > 0): ?>
+    <?php if ($tx_summary['applicable'] > 0): ?>
     <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6">
         <div class="flex items-center justify-between mb-1.5"><span class="text-sm font-medium text-gray-700">Overall Collection Progress</span><span class="text-sm font-bold <?= $tx_label ?>"><?= $tx_pct ?>%</span></div>
         <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full <?= $tx_bar ?>" style="width: <?= min($tx_pct, 100) ?>%"></div></div>
@@ -174,7 +327,9 @@ include __DIR__ . '/../../includes/header.php';
                     <th class="text-left py-3 px-4 font-medium text-gray-500">Invoice</th>
                     <th class="text-left py-3 px-4 font-medium text-gray-500">Student</th>
                     <th class="text-left py-3 px-4 font-medium text-gray-500">Class</th>
-                    <th class="text-right py-3 px-4 font-medium text-gray-500">Amount</th>
+                    <th class="text-right py-3 px-4 font-medium text-gray-500">Billed</th>
+                    <th class="text-right py-3 px-4 font-medium text-gray-500">Disc.</th>
+                    <th class="text-right py-3 px-4 font-medium text-gray-500">Applicable</th>
                     <th class="text-right py-3 px-4 font-medium text-gray-500">Paid</th>
                     <th class="text-right py-3 px-4 font-medium text-gray-500">Due</th>
                     <th class="text-center py-3 px-4 font-medium text-gray-500">Progress</th>
@@ -185,10 +340,11 @@ include __DIR__ . '/../../includes/header.php';
             </thead>
             <tbody>
                 <?php if (empty($transactions)): ?>
-                <tr><td colspan="9" class="py-12 text-center text-gray-400">No transactions found.</td></tr>
+                <tr><td colspan="12" class="py-12 text-center text-gray-400">No transactions found.</td></tr>
                 <?php else: ?>
                 <?php foreach ($transactions as $t): 
-                    $pct = $t['total_amount'] > 0 ? round($t['paid_amount'] / $t['total_amount'] * 100) : 0;
+                    $applicable = $t['total_amount'] - ($t['discount'] ?? 0);
+                    $pct = $applicable > 0 ? round($t['paid_amount'] / $applicable * 100) : 0;
                     $bar_color = $pct >= 100 ? 'bg-green-500' : ($pct >= 50 ? 'bg-amber-500' : 'bg-red-500');
                     $is_overdue = $t['due_date'] && $t['due_date'] < date('Y-m-d') && $t['payment_status'] !== 'paid';
                 ?>
@@ -197,8 +353,10 @@ include __DIR__ . '/../../includes/header.php';
                     <td class="py-3 px-4"><?= sanitize($t['parent_name'] ?? 'N/A') ?></td>
                     <td class="py-3 px-4"><?= sanitize($t['class_name'] ?? 'N/A') ?></td>
                     <td class="py-3 px-4 text-right"><?= format_currency($t['total_amount']) ?></td>
+                    <td class="py-3 px-4 text-right text-orange-600 font-medium"><?= format_currency($t['discount'] ?? 0) ?></td>
+                    <td class="py-3 px-4 text-right font-medium text-gray-900"><?= format_currency($applicable) ?></td>
                     <td class="py-3 px-4 text-right text-green-600 font-medium"><?= format_currency($t['paid_amount']) ?></td>
-                    <td class="py-3 px-4 text-right text-red-600 font-medium"><?= format_currency($t['due_amount']) ?></td>
+                    <td class="py-3 px-4 text-right text-red-600 font-medium"><?= format_currency($applicable - $t['paid_amount']) ?></td>
                     <td class="py-3 px-4">
                         <div class="flex items-center gap-2 min-w-[90px]">
                             <div class="flex-1 bg-gray-200 rounded-full h-2 max-w-[60px]">

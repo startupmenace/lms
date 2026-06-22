@@ -16,9 +16,11 @@ if (empty($selected) && !empty($children)) $selected = $children[0];
 $fees = $selected ? db_get_all("SELECT t.*, fs.name as structure_name FROM transactions t LEFT JOIN fee_structures fs ON t.fee_structure_id = fs.id WHERE t.student_id = ? ORDER BY t.created_at DESC", [$selected['id']]) : [];
 
 $total_billed = array_sum(array_column($fees, 'total_amount'));
+$total_discount = array_sum(array_map(fn($f) => $f['discount'] ?? 0, $fees));
+$total_applicable = $total_billed - $total_discount;
 $total_paid = array_sum(array_column($fees, 'paid_amount'));
-$total_due = $total_billed - $total_paid;
-$overall_pct = $total_billed > 0 ? round($total_paid / $total_billed * 100) : 0;
+$total_due = $total_applicable - $total_paid;
+$overall_pct = $total_applicable > 0 ? round($total_paid / $total_applicable * 100) : 0;
 
 include __DIR__ . '/../../includes/parent-header.php';
 ?>
@@ -37,16 +39,24 @@ include __DIR__ . '/../../includes/parent-header.php';
 <div class="max-w-5xl mx-auto">
     <h2 class="text-xl font-semibold text-gray-900 mb-6">Fee Status — <?= sanitize($selected['parent_name'] ?? '') ?></h2>
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div class="bg-white rounded-xl border border-gray-200 p-5 text-center">
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+        <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
             <p class="text-xs text-gray-500 uppercase font-medium">Total Billed</p>
             <p class="text-xl font-bold text-gray-900 mt-1"><?= format_currency($total_billed) ?></p>
         </div>
-        <div class="bg-white rounded-xl border border-gray-200 p-5 text-center">
+        <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
+            <p class="text-xs text-gray-500 uppercase font-medium">Discounts</p>
+            <p class="text-xl font-bold text-orange-600 mt-1"><?= format_currency($total_discount) ?></p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
+            <p class="text-xs text-gray-500 uppercase font-medium">Total Applicable</p>
+            <p class="text-xl font-bold text-gray-900 mt-1"><?= format_currency($total_applicable) ?></p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
             <p class="text-xs text-gray-500 uppercase font-medium">Total Paid</p>
             <p class="text-xl font-bold text-green-600 mt-1"><?= format_currency($total_paid) ?></p>
         </div>
-        <div class="bg-white rounded-xl border border-gray-200 p-5 text-center">
+        <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
             <p class="text-xs text-gray-500 uppercase font-medium">Due Amount</p>
             <p class="text-xl font-bold <?= $total_due > 0 ? 'text-red-600' : 'text-green-600' ?> mt-1"><?= format_currency($total_due) ?></p>
         </div>
@@ -64,7 +74,9 @@ include __DIR__ . '/../../includes/parent-header.php';
                     <th class="text-left py-3 px-4 font-medium text-gray-500">Invoice</th>
                     <th class="text-left py-3 px-4 font-medium text-gray-500">Fee Type</th>
                     <th class="text-left py-3 px-4 font-medium text-gray-500">Due Date</th>
-                    <th class="text-right py-3 px-4 font-medium text-gray-500">Amount</th>
+                    <th class="text-right py-3 px-4 font-medium text-gray-500">Billed</th>
+                    <th class="text-right py-3 px-4 font-medium text-gray-500">Disc.</th>
+                    <th class="text-right py-3 px-4 font-medium text-gray-500">Applicable</th>
                     <th class="text-right py-3 px-4 font-medium text-gray-500">Paid</th>
                     <th class="text-center py-3 px-4 font-medium text-gray-500">Status</th>
                     <th class="text-center py-3 px-4 font-medium text-gray-500">Action</th>
@@ -72,7 +84,8 @@ include __DIR__ . '/../../includes/parent-header.php';
             </thead>
             <tbody>
                 <?php foreach ($fees as $fee):
-                    $pct = $fee['total_amount'] > 0 ? round($fee['paid_amount'] / $fee['total_amount'] * 100) : 0;
+                    $applicable = $fee['total_amount'] - ($fee['discount'] ?? 0);
+                    $pct = $applicable > 0 ? round($fee['paid_amount'] / $applicable * 100) : 0;
                     $is_overdue = $fee['due_date'] && $fee['due_date'] < date('Y-m-d') && $fee['payment_status'] !== 'paid';
                 ?>
                 <tr class="border-b border-gray-100 <?= $is_overdue ? 'bg-red-50/50' : '' ?>">
@@ -89,6 +102,8 @@ include __DIR__ . '/../../includes/parent-header.php';
                         <?php endif; ?>
                     </td>
                     <td class="py-3 px-4 text-right text-gray-900"><?= format_currency($fee['total_amount']) ?></td>
+                    <td class="py-3 px-4 text-right text-orange-600"><?= format_currency($fee['discount'] ?? 0) ?></td>
+                    <td class="py-3 px-4 text-right font-medium text-gray-900"><?= format_currency($applicable) ?></td>
                     <td class="py-3 px-4 text-right text-gray-900"><?= format_currency($fee['paid_amount']) ?></td>
                     <td class="py-3 px-4 text-center">
                         <span class="text-xs px-2 py-1 rounded-full <?= $pct >= 100 ? 'bg-green-100 text-green-700' : ($pct > 0 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700') ?>">
@@ -96,7 +111,7 @@ include __DIR__ . '/../../includes/parent-header.php';
                         </span>
                     </td>
                     <td class="py-3 px-4 text-center">
-                        <?php if ($fee['due_amount'] > 0): ?>
+                        <?php if ($applicable - $fee['paid_amount'] > 0): ?>
                         <a href="pay-fees.php?invoice=<?= urlencode($fee['invoice_no']) ?>&child_id=<?= $child_id ?>" class="bg-teal-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-teal-700 transition inline-flex items-center gap-1">
                             <i class="fas fa-credit-card"></i> Pay Now
                         </a>

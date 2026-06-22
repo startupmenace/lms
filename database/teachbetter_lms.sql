@@ -1070,6 +1070,7 @@ CREATE TABLE `transactions` (
   `due_date` date DEFAULT NULL,
   `invoice_no` varchar(50) NOT NULL,
   `total_amount` decimal(10,2) NOT NULL,
+  `discount` decimal(10,2) DEFAULT 0.00,
   `line_items` text DEFAULT NULL,
   `paid_amount` decimal(10,2) NOT NULL,
   `due_amount` decimal(10,2) DEFAULT 0.00,

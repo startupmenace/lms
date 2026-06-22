@@ -212,13 +212,15 @@ include __DIR__ . '/../../includes/parent-header.php';
         </div>
         <?php
         $total_billed = array_sum(array_column($fees, 'total_amount'));
+        $total_discount = array_sum(array_map(fn($f) => $f['discount'] ?? 0, $fees));
+        $total_applicable = $total_billed - $total_discount;
         $total_paid = array_sum(array_column($fees, 'paid_amount'));
-        $fee_pct = $total_billed > 0 ? round($total_paid / $total_billed * 100) : 0;
+        $fee_pct = $total_applicable > 0 ? round($total_paid / $total_applicable * 100) : 0;
         ?>
         <?php if (empty($fees)): ?>
         <p class="text-sm text-gray-400 text-center py-6">No fee records</p>
         <?php else: ?>
-        <?php if ($total_billed > 0): ?>
+        <?php if ($total_applicable > 0): ?>
         <div class="mb-4 p-3 bg-gray-50 rounded-lg">
             <div class="flex items-center justify-between text-sm mb-1.5">
                 <span class="text-gray-600 font-medium">Overall Payment</span>
