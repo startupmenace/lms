@@ -63,7 +63,7 @@ include __DIR__ . '/../../includes/parent-header.php';
                 <tr class="bg-gray-50 border-b border-gray-200">
                     <th class="text-left py-3 px-4 font-medium text-gray-500">Invoice</th>
                     <th class="text-left py-3 px-4 font-medium text-gray-500">Fee Type</th>
-                    <th class="text-left py-3 px-4 font-medium text-gray-500">Date</th>
+                    <th class="text-left py-3 px-4 font-medium text-gray-500">Due Date</th>
                     <th class="text-right py-3 px-4 font-medium text-gray-500">Amount</th>
                     <th class="text-right py-3 px-4 font-medium text-gray-500">Paid</th>
                     <th class="text-center py-3 px-4 font-medium text-gray-500">Status</th>
@@ -73,11 +73,21 @@ include __DIR__ . '/../../includes/parent-header.php';
             <tbody>
                 <?php foreach ($fees as $fee):
                     $pct = $fee['total_amount'] > 0 ? round($fee['paid_amount'] / $fee['total_amount'] * 100) : 0;
+                    $is_overdue = $fee['due_date'] && $fee['due_date'] < date('Y-m-d') && $fee['payment_status'] !== 'paid';
                 ?>
-                <tr class="border-b border-gray-100">
+                <tr class="border-b border-gray-100 <?= $is_overdue ? 'bg-red-50/50' : '' ?>">
                     <td class="py-3 px-4 text-gray-900">#<?= sanitize($fee['invoice_no']) ?></td>
                     <td class="py-3 px-4 text-gray-600"><?= sanitize($fee['structure_name'] ?? 'Fee') ?></td>
-                    <td class="py-3 px-4 text-gray-600"><?= format_date($fee['created_at'] ?? $fee['due_date'] ?? '') ?></td>
+                    <td class="py-3 px-4">
+                        <?php if ($fee['due_date']): ?>
+                            <span class="text-xs font-medium <?= $is_overdue ? 'text-red-600 font-bold' : 'text-gray-600' ?>">
+                                <?= format_date($fee['due_date']) ?>
+                                <?php if ($is_overdue): ?><i class="fas fa-exclamation-circle ml-0.5"></i><?php endif; ?>
+                            </span>
+                        <?php else: ?>
+                            <span class="text-xs text-gray-400">—</span>
+                        <?php endif; ?>
+                    </td>
                     <td class="py-3 px-4 text-right text-gray-900"><?= format_currency($fee['total_amount']) ?></td>
                     <td class="py-3 px-4 text-right text-gray-900"><?= format_currency($fee['paid_amount']) ?></td>
                     <td class="py-3 px-4 text-center">

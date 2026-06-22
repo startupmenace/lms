@@ -122,3 +122,9 @@ function paginate($total, $per_page, $current_page) {
         'next' => $current_page < $total_pages ? $current_page + 1 : null
     ];
 }
+
+function ordinal($number) {
+    $ends = ['th','st','nd','rd','th','th','th','th','th','th'];
+    if ((($number % 100) >= 11) && (($number % 100) <= 13)) return $number . 'th';
+    return $number . $ends[$number % 10];
+}

@@ -63,8 +63,15 @@ include __DIR__ . '/../../includes/header.php';
             <h3 class="font-semibold text-gray-900"><?= sanitize($fs['name']) ?></h3>
             <div class="text-sm text-gray-500 mt-2 space-y-1">
                 <div><span class="font-medium">Prefix:</span> <?= sanitize($fs['prefix']) ?> | <span class="font-medium">Receipt:</span> #<?= $fs['receipt_start'] ?></div>
-                <div><span class="font-medium">Frequency:</span> <?= ucfirst(str_replace('_', ' ', $fs['frequency'])) ?></div>
+                <div><span class="font-medium">Frequency:</span> <?= ucfirst(str_replace('_', ' ', $fs['frequency'])) ?><?= $fs['due_day'] && $fs['frequency'] === 'monthly' ? ' (Due on ' . ordinal($fs['due_day']) . ')' : '' ?></div>
                 <div><span class="font-medium">Classes:</span> <?= sanitize($fs['class_names'] ?? 'N/A') ?></div>
+                <?php if ($fs['term_config']): $tc = json_decode($fs['term_config'], true); ?>
+                <div class="mt-1 flex gap-1 flex-wrap">
+                    <?php foreach ($tc as $t => $c): ?>
+                    <span class="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded"><?= sanitize($t) ?>: <?= sanitize($c['prefix'] ?? '') ?><?= !empty($c['due_date']) ? ' (due ' . format_date($c['due_date']) . ')' : '' ?></span>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
                 <div><span class="font-medium">Fee Types:</span> <?= $fs['type_count'] ?></div>
             </div>
             <div class="mt-3 pt-3 border-t border-gray-100 flex gap-2">
@@ -172,6 +179,7 @@ include __DIR__ . '/../../includes/header.php';
                     <th class="text-right py-3 px-4 font-medium text-gray-500">Due</th>
                     <th class="text-center py-3 px-4 font-medium text-gray-500">Progress</th>
                     <th class="text-center py-3 px-4 font-medium text-gray-500">Status</th>
+                    <th class="text-center py-3 px-4 font-medium text-gray-500">Due Date</th>
                     <th class="text-left py-3 px-4 font-medium text-gray-500">Date</th>
                 </tr>
             </thead>
@@ -182,8 +190,9 @@ include __DIR__ . '/../../includes/header.php';
                 <?php foreach ($transactions as $t): 
                     $pct = $t['total_amount'] > 0 ? round($t['paid_amount'] / $t['total_amount'] * 100) : 0;
                     $bar_color = $pct >= 100 ? 'bg-green-500' : ($pct >= 50 ? 'bg-amber-500' : 'bg-red-500');
+                    $is_overdue = $t['due_date'] && $t['due_date'] < date('Y-m-d') && $t['payment_status'] !== 'paid';
                 ?>
-                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                <tr class="border-b border-gray-100 hover:bg-gray-50 <?= $is_overdue ? 'bg-red-50/50' : '' ?>">
                     <td class="py-3 px-4 font-medium text-gray-900">#<?= sanitize($t['invoice_no']) ?></td>
                     <td class="py-3 px-4"><?= sanitize($t['parent_name'] ?? 'N/A') ?></td>
                     <td class="py-3 px-4"><?= sanitize($t['class_name'] ?? 'N/A') ?></td>
@@ -203,6 +212,16 @@ include __DIR__ . '/../../includes/header.php';
                             <?= ucfirst($t['payment_status']) ?>
                         </span>
                     </td>
+                    <td class="py-3 px-4 text-center">
+                        <?php if ($t['due_date']): ?>
+                            <span class="text-xs font-medium <?= $is_overdue ? 'text-red-600 font-bold' : 'text-gray-600' ?>">
+                                <?= format_date($t['due_date']) ?>
+                                <?php if ($is_overdue): ?><i class="fas fa-exclamation-circle ml-0.5"></i><?php endif; ?>
+                            </span>
+                        <?php else: ?>
+                            <span class="text-xs text-gray-400">—</span>
+                        <?php endif; ?>
+                    </td>
                     <td class="py-3 px-4"><?= $t['payment_date'] ? format_date($t['payment_date']) : format_date($t['created_at']) ?></td>
                 </tr>
                 <?php endforeach; ?>
@@ -218,7 +237,7 @@ include __DIR__ . '/../../includes/header.php';
         LEFT JOIN students s ON t.student_id = s.id
         LEFT JOIN classes c ON s.class_id = c.id
         WHERE t.payment_status IN ('pending','partial') AND t.due_amount > 0
-        ORDER BY t.created_at DESC LIMIT 20");
+        ORDER BY COALESCE(t.due_date, t.created_at) ASC LIMIT 20");
     ?>
     <div class="bg-white rounded-xl border border-gray-200 p-6">
         <?php if (empty($due_payments)): ?>
@@ -229,11 +248,19 @@ include __DIR__ . '/../../includes/header.php';
         <?php else: ?>
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Payment Reminders</h3>
         <div class="space-y-4">
-            <?php foreach ($due_payments as $d): ?>
-            <div class="flex items-center justify-between p-4 bg-amber-50 rounded-lg border border-amber-200">
+            <?php foreach ($due_payments as $d): 
+                $is_overdue = $d['due_date'] && $d['due_date'] < date('Y-m-d');
+            ?>
+            <div class="flex items-center justify-between p-4 rounded-lg border <?= $is_overdue ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200' ?>">
                 <div>
                     <p class="font-medium text-gray-900"><?= sanitize($d['parent_name']) ?></p>
                     <p class="text-sm text-gray-500"><?= sanitize($d['enrollment_id']) ?> | <?= sanitize($d['class_name']) ?> | Due: <?= format_currency($d['due_amount']) ?></p>
+                    <?php if ($d['due_date']): ?>
+                    <p class="text-xs <?= $is_overdue ? 'text-red-600 font-bold' : 'text-gray-500' ?> mt-0.5">
+                        <i class="fas fa-calendar mr-0.5"></i> Due: <?= format_date($d['due_date']) ?>
+                        <?php if ($is_overdue): ?><span class="ml-1">(Overdue)</span><?php endif; ?>
+                    </p>
+                    <?php endif; ?>
                 </div>
                 <div class="flex gap-2">
                     <a href="#" class="bg-amber-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-amber-600 transition">

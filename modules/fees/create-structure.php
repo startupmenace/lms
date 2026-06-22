@@ -16,11 +16,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ];
         $step = 2;
     } elseif ($step == 3) {
+        $term_config = [];
+        foreach (['Term 1', 'Term 2', 'Term 3'] as $t) {
+            $tp = $_POST[$t . '_prefix'] ?? '';
+            $td = $_POST[$t . '_due_date'] ?? '';
+            if ($tp || $td) $term_config[$t] = ['prefix' => sanitize($tp), 'due_date' => $td];
+        }
         $_SESSION['fee_step2'] = [
             'name' => sanitize($_POST['name'] ?? ''),
             'prefix' => sanitize($_POST['prefix'] ?? ''),
             'receipt_start' => (int)($_POST['receipt_start'] ?? 1),
-            'frequency' => sanitize($_POST['frequency'] ?? 'monthly')
+            'frequency' => sanitize($_POST['frequency'] ?? 'monthly'),
+            'due_day' => !empty($_POST['due_day']) ? (int)$_POST['due_day'] : null,
+            'term_config' => !empty($term_config) ? json_encode($term_config) : null
         ];
         $step = 3;
     } elseif ($step == 4) {
@@ -45,8 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             set_flash('error', 'Please fill in all required fields.');
         } else {
             $structure_id = db_insert(
-                "INSERT INTO fee_structures (name, prefix, receipt_start, frequency, created_by) VALUES (?, ?, ?, ?, ?)",
-                [$step2['name'], $step2['prefix'], $step2['receipt_start'], $step2['frequency'], get_user_id()]
+                "INSERT INTO fee_structures (name, prefix, receipt_start, frequency, due_day, term_config, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                [$step2['name'], $step2['prefix'], $step2['receipt_start'], $step2['frequency'], $step2['due_day'], $step2['term_config'], get_user_id()]
             );
             if ($structure_id) {
                 foreach ($step1['class_ids'] as $cid) {
@@ -130,12 +138,38 @@ include __DIR__ . '/../../includes/header.php';
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
-                    <select name="frequency" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                    <select name="frequency" id="frequency" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
                         <option value="monthly">Monthly</option>
                         <option value="quarterly">Quarterly</option>
                         <option value="half_yearly">Half Yearly</option>
                         <option value="yearly">Yearly</option>
                     </select>
+                </div>
+                <div id="dueDayField" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Due Day of Month</label>
+                    <input type="number" name="due_day" min="1" max="31" value="5" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none" placeholder="e.g. 5 for 5th of each month">
+                    <p class="text-xs text-gray-400 mt-0.5">On which day of the month is fee due? (1-31)</p>
+                </div>
+                <div class="border-t border-gray-200 pt-4 mt-4">
+                    <h4 class="text-sm font-bold text-gray-700 mb-3">Term Settings (optional)</h4>
+                    <p class="text-xs text-gray-400 mb-3">Set a custom prefix and due date for each term. These are used when generating bills per term.</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <?php foreach (['Term 1', 'Term 2', 'Term 3'] as $t): ?>
+                        <div class="border border-gray-200 rounded-lg p-3">
+                            <h5 class="text-xs font-bold text-gray-700 mb-2"><?= $t ?></h5>
+                            <div class="space-y-2">
+                                <div>
+                                    <label class="block text-[10px] font-medium text-gray-500">Prefix</label>
+                                    <input type="text" name="<?= $t ?>_prefix" class="w-full border border-gray-300 rounded px-2 py-1.5 text-xs focus:ring-2 focus:ring-teal-500 outline-none" placeholder="e.g. T1-">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-medium text-gray-500">Due Date</label>
+                                    <input type="date" name="<?= $t ?>_due_date" class="w-full border border-gray-300 rounded px-2 py-1.5 text-xs focus:ring-2 focus:ring-teal-500 outline-none">
+                                </div>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
             </div>
             <div class="flex gap-3 mt-6">
@@ -197,4 +231,12 @@ function addFeeRow() {
 }
 </script>
 
+<script>
+document.getElementById('frequency').addEventListener('change', function() {
+    document.getElementById('dueDayField').classList.toggle('hidden', this.value !== 'monthly');
+});
+if (document.getElementById('frequency').value === 'monthly') {
+    document.getElementById('dueDayField').classList.remove('hidden');
+}
+</script>
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

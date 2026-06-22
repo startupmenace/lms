@@ -51,6 +51,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate'])) {
     $extras_labels = $_POST['extras_label'] ?? [];
     $extras_amounts = $_POST['extras_amount'] ?? [];
 
+    // Determine prefix and due date
+    $prefix_override = sanitize($_POST['prefix'] ?? '');
+    $due_date_input = sanitize($_POST['due_date'] ?? '');
+    $term_config = $structure['term_config'] ? json_decode($structure['term_config'], true) : [];
+    $term_settings = $term_config[$term] ?? [];
+
     $created = 0;
     foreach ($student_ids as $sid) {
         $sid = (int)$sid;
@@ -89,13 +95,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate'])) {
         }
 
         $total = $base_total + $extra_total;
-        $prefix = $structure['prefix'] ?? 'INV';
+
+        // Prefix: override > term config > structure default
+        if ($prefix_override) {
+            $prefix = $prefix_override;
+        } elseif (!empty($term_settings['prefix'])) {
+            $prefix = $term_settings['prefix'];
+        } else {
+            $prefix = $structure['prefix'] ?? 'INV';
+        }
         $receipt_num = $structure['receipt_start'] + $sid;
         $invoice_no = $prefix . '-' . $receipt_num . '-' . time();
 
+        // Due date: input override > term config > calculated from due_day
+        if ($due_date_input) {
+            $due_date = $due_date_input;
+        } elseif (!empty($term_settings['due_date'])) {
+            $due_date = $term_settings['due_date'];
+        } elseif ($structure['due_day'] && $structure['frequency'] === 'monthly') {
+            $due_date = date('Y-m') . '-' . str_pad($structure['due_day'], 2, '0', STR_PAD_LEFT);
+        } else {
+            $due_date = null;
+        }
+
         db_insert(
-            "INSERT INTO transactions (student_id, fee_structure_id, term, session_year, invoice_no, total_amount, line_items, paid_amount, due_amount, payment_status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, 'pending', NOW())",
-            [$sid, $structure_id, $term, $session, $invoice_no, $total, json_encode($line_items), $total]
+            "INSERT INTO transactions (student_id, fee_structure_id, term, session_year, due_date, invoice_no, total_amount, line_items, paid_amount, due_amount, payment_status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 'pending', NOW())",
+            [$sid, $structure_id, $term, $session, $due_date, $invoice_no, $total, json_encode($line_items), $total]
         );
         $created++;
     }
@@ -152,6 +177,11 @@ include __DIR__ . '/../../includes/header.php';
                 <label class="block text-xs font-medium text-gray-600 mb-1">Session</label>
                 <input type="text" name="session" value="<?= sanitize($selected_session) ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
             </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Due Date</label>
+                <input type="date" name="due_date" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                <p class="text-[10px] text-gray-400 mt-0.5">Leave blank to use term config</p>
+            </div>
             <?php if (!empty($streams)): ?>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Stream</label>
@@ -168,6 +198,24 @@ include __DIR__ . '/../../includes/header.php';
                 <button type="submit" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-700 transition w-full"><i class="fas fa-search mr-1"></i> Preview</button>
             </div>
         </form>
+        <?php if ($preview): ?>
+        <div class="mt-4 pt-4 border-t border-gray-200">
+            <details class="group">
+                <summary class="text-xs font-medium text-gray-500 cursor-pointer hover:text-gray-700 select-none"><i class="fas fa-cog mr-1"></i> Advanced: Prefix & Due Date Override</summary>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Invoice Prefix Override</label>
+                        <input type="text" name="prefix" form="billForm" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none" placeholder="Auto from structure/term" value="<?= sanitize($_GET['prefix'] ?? '') ?>">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Due Date</label>
+                        <input type="date" name="due_date" form="billForm" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none" value="<?= sanitize($_GET['due_date'] ?? '') ?>">
+                        <p class="text-[10px] text-gray-400 mt-0.5">Leave blank to use term config from fee structure</p>
+                    </div>
+                </div>
+            </details>
+        </div>
+        <?php endif; ?>
     </div>
 
     <?php if ($preview && $selected_class && $selected_structure): ?>
