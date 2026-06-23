@@ -134,7 +134,7 @@ include __DIR__ . '/../../includes/header.php';
                         <th class="text-center py-3 px-4 font-medium text-gray-500 w-16">Absent</th>
                         <th class="text-center py-3 px-4 font-medium text-gray-500 w-16">Late</th>
                         <th class="text-center py-3 px-4 font-medium text-gray-500 w-16">Leave</th>
-                        <th class="text-left py-3 px-4 font-medium text-gray-500">Reason (if absent/late)</th>
+                        <th class="text-left py-3 px-4 font-medium text-gray-500">Reason (if not present)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -156,7 +156,7 @@ include __DIR__ . '/../../includes/header.php';
                             <input type="radio" name="status[<?= $s['id'] ?>]" value="leave" <?= $status == 'leave' ? 'checked' : '' ?> class="text-blue-600 focus:ring-blue-500" onchange="toggleReason(this, <?= $s['id'] ?>)">
                         </td>
                         <td class="py-3 px-4">
-                            <input type="text" name="absent_reason[<?= $s['id'] ?>]" value="<?= sanitize($s['absent_reason'] ?? '') ?>" placeholder="Sick, traffic, etc." class="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-teal-500 outline-none absent-reason-<?= $s['id'] ?>" <?= $status !== 'absent' && $status !== 'late' ? 'style="opacity:0.4"' : '' ?>>
+                            <input type="text" name="absent_reason[<?= $s['id'] ?>]" value="<?= sanitize($s['absent_reason'] ?? '') ?>" placeholder="Sick, traffic, etc." class="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-teal-500 outline-none absent-reason-<?= $s['id'] ?>" <?= $status === 'present' ? 'style="opacity:0.4"' : '' ?>>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -348,7 +348,7 @@ include __DIR__ . '/../../includes/header.php';
 function toggleReason(el, sid) {
     const input = document.querySelector('.absent-reason-' + sid);
     if (input) {
-        input.style.opacity = (el.value === 'absent' || el.value === 'late') ? '1' : '0.4';
+        input.style.opacity = el.value === 'present' ? '0.4' : '1';
     }
 }
 </script>
