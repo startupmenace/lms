@@ -88,7 +88,7 @@ $stats = db_get_row("SELECT COUNT(*) as total, SUM(CASE WHEN status='present' TH
                         </div>
                     </td>
                     <td class="py-2">
-                        <input type="text" name="absent_reason[<?= $s['id'] ?>]" value="<?= sanitize($reason_map[$s['id']] ?? '') ?>" placeholder="Sick, travel..." class="w-36 border border-gray-200 rounded px-2 py-1 text-xs focus:ring-2 focus:ring-teal-500 outline-none reason-<?= $s['id'] ?>" <?= ($att_map[$s['id']] ?? 'present') !== 'absent' ? 'style="opacity:0.4"' : '' ?>>
+                        <input type="text" name="absent_reason[<?= $s['id'] ?>]" value="<?= sanitize($reason_map[$s['id']] ?? '') ?>" placeholder="Sick, traffic..." class="w-36 border border-gray-200 rounded px-2 py-1 text-xs focus:ring-2 focus:ring-teal-500 outline-none reason-<?= $s['id'] ?>" <?= !in_array(($att_map[$s['id']] ?? 'present'), ['absent','late']) ? 'style="opacity:0.4"' : '' ?>>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -106,6 +106,6 @@ $stats = db_get_row("SELECT COUNT(*) as total, SUM(CASE WHEN status='present' TH
 <script>
 function toggleClassReason(el, sid) {
     const inp = document.querySelector('.reason-' + sid);
-    if (inp) inp.style.opacity = el.value === 'absent' ? '1' : '0.4';
+    if (inp) inp.style.opacity = (el.value === 'absent' || el.value === 'late') ? '1' : '0.4';
 }
 </script>
