@@ -93,7 +93,11 @@
         <?php if (has_module_access('hr')): ?>
         <a href="<?= BASE_URL ?>/modules/hr/index.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
             <i class="fas fa-users w-5 text-center"></i> HR
-            <span class="ml-auto text-[9px] bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded">Beta</span>
+           
+        </a>
+          <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
+            <i class="fas fa-users w-5 text-center"></i> Library module 
+           <span class="ml-auto text-[9px] bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded">alpha</span>
         </a>
         <?php endif; ?>
         <?php endif; ?>
