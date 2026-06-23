@@ -83,13 +83,14 @@ $pending_evaluations = db_get_all("SELECT ts.*, t.title as test_title, s.parent_
 $chart_labels = [];
 $chart_present = [];
 $chart_absent = [];
-for ($i = 6; $i >= 0; $i--) {
-    $d = date('Y-m-d', strtotime("-$i days"));
-    $chart_labels[] = date('D', strtotime("-$i days"));
-    $present = db_get_row("SELECT COUNT(*) as count FROM attendance WHERE date = ? AND status = 'present'", [$d])['count'] ?? 0;
-    $absent = db_get_row("SELECT COUNT(*) as count FROM attendance WHERE date = ? AND status = 'absent'", [$d])['count'] ?? 0;
-    $chart_present[] = $present;
-    $chart_absent[] = $absent;
+foreach ($my_classes as $c) {
+    $chart_labels[] = $c['name'];
+    $stats = db_get_row("SELECT
+        COALESCE(SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END), 0) as present_count,
+        COALESCE(SUM(CASE WHEN status = 'absent' THEN 1 ELSE 0 END), 0) as absent_count
+        FROM attendance WHERE class_id = ?", [$c['id']]);
+    $chart_present[] = (int)$stats['present_count'];
+    $chart_absent[] = (int)$stats['absent_count'];
 }
 
 $hour = (int)date('H');
@@ -307,7 +308,7 @@ include __DIR__ . '/../../includes/header.php';
                 <h2 class="text-base sm:text-lg font-bold text-gray-900">Attendance Overview</h2>
                 <a href="<?= BASE_URL ?>/modules/attendance/index.php" class="text-sm font-semibold text-teal-600 hover:text-teal-700 hover:underline focus:outline-none focus:ring-2 focus:ring-teal-400 rounded-lg px-2 py-1">View Details</a>
             </div>
-            <canvas id="attendanceChart" height="200" aria-label="Attendance chart showing present and absent counts for the past week" role="img"></canvas>
+            <canvas id="attendanceChart" height="200" aria-label="Attendance chart showing present and absent counts per class" role="img"></canvas>
         </div>
 
         <?php if (!empty($pending_evaluations)): ?>
@@ -486,29 +487,23 @@ document.addEventListener('DOMContentLoaded', function() {
     var ctx = document.getElementById('attendanceChart');
     if (!ctx) return;
     new Chart(ctx.getContext('2d'), {
-        type: 'line',
+        type: 'bar',
         data: {
             labels: <?= json_encode($chart_labels) ?>,
             datasets: [{
                 label: 'Present',
                 data: <?= json_encode($chart_present) ?>,
+                backgroundColor: 'rgba(13, 148, 136, 0.7)',
                 borderColor: '#0d9488',
-                backgroundColor: 'rgba(13, 148, 136, 0.08)',
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#0d9488',
-                pointRadius: 4,
-                pointHoverRadius: 6
+                borderWidth: 1,
+                borderRadius: 4
             }, {
                 label: 'Absent',
                 data: <?= json_encode($chart_absent) ?>,
+                backgroundColor: 'rgba(239, 68, 68, 0.7)',
                 borderColor: '#ef4444',
-                backgroundColor: 'rgba(239, 68, 68, 0.08)',
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#ef4444',
-                pointRadius: 4,
-                pointHoverRadius: 6
+                borderWidth: 1,
+                borderRadius: 4
             }]
         },
         options: {
@@ -519,7 +514,7 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             scales: {
                 y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11 } } },
-                x: { grid: { display: false }, ticks: { font: { size: 11, weight: 'bold' } } }
+                x: { grid: { display: false }, ticks: { font: { size: 10, weight: 'bold' }, maxRotation: 45 } }
             },
             interaction: { intersect: false, mode: 'index' }
         }
