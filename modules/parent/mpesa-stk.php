@@ -51,7 +51,22 @@ $shortcode = '174379';
 $passkey = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';
 $consumerKey = 'uKwnFefxyoXfwvFPvV8GUG9SXe8VgHll8W470FGDVi0G1GEQ';
 $consumerSecret = 'GcewAhPGeAjiBnjYiMoFz2p4aF3lb03j8VII3NuVqbq7ptQnRJGRUW6mgCGraDBB';
-$callbackUrl = (defined('BASE_URL') ? BASE_URL : 'https://ziada.co.ke') . '/modules/mpesa/callback.php';
+// Prefer explicit env var, then configured BASE_URL, then attempt to derive from current request
+// Default to the parent module callback handler we just add
+$callbackUrl = getenv('MPESA_CALLBACK_URL') ?: (defined('BASE_URL') ? rtrim(BASE_URL, '/') . '/modules/parent/mpesa-callback.php' : '');
+if (empty($callbackUrl) && !empty($_SERVER['HTTP_HOST'])) {
+    $scheme = (!empty($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : (!empty($_SERVER['HTTPS']) ? 'https' : 'http'));
+    $callbackUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/modules/mpesa/callback.php';
+}
+
+// Log chosen callback for troubleshooting
+file_put_contents(__DIR__ . '/mpesa-stk.log', date('Y-m-d H:i:s') . " CallbackURL: $callbackUrl\n", FILE_APPEND);
+
+if (empty($callbackUrl)) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Missing MPESA callback URL', 'hint' => 'Set MPESA_CALLBACK_URL or BASE_URL']);
+    exit;
+}
 
 $timestamp = date('YmdHis');
 $password = base64_encode($shortcode . $passkey . $timestamp);
