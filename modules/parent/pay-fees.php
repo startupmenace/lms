@@ -267,6 +267,7 @@ include __DIR__ . '/../../includes/parent-header.php';
         })
         .then(r => r.json())
         .then(d => {
+            console.log('mpesa-stk response', d);
             if (d.success) {
                 status.className = 'bg-blue-50 border border-blue-200 text-blue-700 rounded-lg p-3 text-sm';
                 status.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> STK push sent! Waiting for you to complete payment on your phone...';
@@ -282,6 +283,7 @@ include __DIR__ . '/../../includes/parent-header.php';
             }
         })
         .catch(e => {
+            console.error('mpesa-stk error', e);
             status.className = 'bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm';
             status.innerHTML = '<i class="fas fa-exclamation-circle mr-1"></i> Network error. Please try again.';
             btn.disabled = false;
@@ -313,6 +315,7 @@ include __DIR__ . '/../../includes/parent-header.php';
                   '&amount=' + encodeURIComponent(amount))
             .then(r => r.json())
             .then(d => {
+                console.log('mpesa-query response', d);
                 if (d.status === 'completed') {
                     status.className = 'bg-green-50 border border-green-200 text-green-700 rounded-lg p-3 text-sm';
                     status.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Payment of KSh ' + (d.amount || amount) + ' received!';
@@ -335,6 +338,7 @@ include __DIR__ . '/../../includes/parent-header.php';
                 }
             })
             .catch(e => {
+                console.error('mpesa-query error', e);
                 setTimeout(poll, 3000);
             });
         }
