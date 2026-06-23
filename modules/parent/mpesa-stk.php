@@ -134,6 +134,83 @@ db_query(
     ['STK-' . $merchantRequestId, $invoice_no, $child_id]
 );
 
+// Attempt an immediate STK push query to reduce reliance on client polling/callbacks.
+$queryResult = null;
+if (!empty($checkoutRequestId)) {
+    $queryPayload = [
+        'BusinessShortCode' => $shortcode,
+        'Password' => $password,
+        'Timestamp' => $timestamp,
+        'CheckoutRequestID' => $checkoutRequestId
+    ];
+
+    $chq = curl_init('https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query');
+    curl_setopt($chq, CURLOPT_POST, true);
+    curl_setopt($chq, CURLOPT_POSTFIELDS, json_encode($queryPayload));
+    curl_setopt($chq, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/json',
+        'Authorization: Bearer ' . $access_token
+    ]);
+    curl_setopt($chq, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($chq, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($chq, CURLOPT_TIMEOUT, 15);
+    $resp_q = curl_exec($chq);
+    $http_q = curl_getinfo($chq, CURLINFO_HTTP_CODE);
+    $curlErr_q = curl_error($chq);
+    curl_close($chq);
+
+    if ($resp_q !== false && $http_q === 200) {
+        $queryResult = json_decode($resp_q, true);
+
+        $resultCode = (int)($queryResult['ResultCode'] ?? -1);
+        if ($resultCode === 0) {
+            // Extract amount & receipt if present
+            $actualAmount = $amount;
+            $receiptNumber = '';
+            if (isset($queryResult['ResultParameters']['ResultParameter']) && is_array($queryResult['ResultParameters']['ResultParameter'])) {
+                foreach ($queryResult['ResultParameters']['ResultParameter'] as $param) {
+                    if (($param['Key'] ?? '') === 'TransactionAmount') $actualAmount = (float)($param['Value'] ?? $amount);
+                    if (($param['Key'] ?? '') === 'TransactionReceipt') $receiptNumber = $param['Value'] ?? '';
+                    if (($param['Key'] ?? '') === 'ReceiptNumber') $receiptNumber = $param['Value'] ?? '';
+                }
+            }
+
+            // Refresh txn and update only if not already verified
+            $txn = db_get_row(
+                "SELECT t.* FROM transactions t
+                 JOIN student_parents sp ON t.student_id = sp.student_id
+                 WHERE t.invoice_no = ? AND sp.parent_user_id = ?",
+                [$invoice_no, get_user_id()]
+            );
+            if ($txn && !$txn['verified_at']) {
+                $new_paid = $txn['paid_amount'] + $actualAmount;
+                $new_due = $txn['total_amount'] - $new_paid;
+                $new_status = $new_due <= 0 ? 'paid' : 'partial';
+
+                db_query(
+                    "UPDATE transactions SET
+                     transaction_id = CONCAT(IFNULL(transaction_id,''), ' / MPESA:', ?),
+                     paid_amount = ?,
+                     due_amount = ?,
+                     payment_status = ?,
+                     payment_date = CURDATE(),
+                     verified_by = 0,
+                     verified_at = NOW()
+                     WHERE invoice_no = ? AND verified_at IS NULL",
+                    [$receiptNumber, $new_paid, $new_due, $new_status, $invoice_no]
+                );
+            }
+        }
+    } else {
+        $queryResult = [
+            'error' => 'Query failed',
+            'http_code' => $http_q,
+            'curl_error' => $curlErr_q,
+            'response' => $resp_q
+        ];
+    }
+}
+
 echo json_encode([
     'success' => true,
     'message' => 'STK push sent. Check your phone to complete payment.',
@@ -142,5 +219,6 @@ echo json_encode([
     'invoice_no' => $invoice_no,
     'child_id' => $child_id,
     'amount' => $amount,
-    'phone' => $phone
+    'phone' => $phone,
+    'query' => $queryResult
 ]);
