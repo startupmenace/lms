@@ -28,18 +28,29 @@ if ($question_order) {
     $questions = $ordered;
 }
 
+// Extract existing per-question marks from answers JSON
+$question_marks = [];
+foreach ($answers as $key => $val) {
+    if (strpos($key, 'mark_') === 0) {
+        $qid = substr($key, 5);
+        $question_marks[$qid] = (float)$val;
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $total_obtained = 0;
     $feedback = sanitize($_POST['feedback'] ?? '');
     $resubmit = isset($_POST['resubmit']) ? 'resubmitted' : 'evaluated';
     $marks = $_POST['marks'] ?? [];
 
+    // Store per-question marks in answers JSON
     foreach ($marks as $qid => $mark) {
+        $answers['mark_' . $qid] = (float)$mark;
         $total_obtained += (float)$mark;
     }
 
-    db_query("UPDATE test_submissions SET total_marks_obtained = ?, status = ?, evaluated_at = NOW(), evaluated_by = ?, feedback = ? WHERE id = ?",
-        [$total_obtained, $resubmit, get_user_id(), $feedback, $sub_id]);
+    db_query("UPDATE test_submissions SET total_marks_obtained = ?, status = ?, evaluated_at = NOW(), evaluated_by = ?, feedback = ?, answers = ? WHERE id = ?",
+        [$total_obtained, $resubmit, get_user_id(), $feedback, json_encode($answers), $sub_id]);
 
     set_flash('success', 'Evaluation saved successfully!');
     redirect('index.php');
@@ -104,7 +115,7 @@ include __DIR__ . '/../../includes/header.php';
                 <div class="flex items-center gap-4 mt-3">
                     <div>
                         <label class="text-xs text-gray-500">Marks Awarded</label>
-                        <input type="number" name="marks[<?= $q['id'] ?>]" min="0" max="<?= $q['marks'] ?>" value="0" step="0.5"
+                        <input type="number" name="marks[<?= $q['id'] ?>]" min="0" max="<?= $q['marks'] ?>" value="<?= $question_marks[$q['id']] ?? 0 ?>" step="0.5"
                                class="w-20 border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
                         <span class="text-xs text-gray-400">/ <?= $q['marks'] ?></span>
                     </div>

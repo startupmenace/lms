@@ -53,6 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $answer = $_POST['q_' . $q['id']] ?? '';
         $answers['q_' . $q['id']] = $answer;
         if ($q['type'] === 'mcq' && (int)$answer === (int)$q['correct_answer']) {
+            $answers['mark_' . $q['id']] = (float)$q['marks'];
             $total_obtained += (float)$q['marks'];
         }
     }
