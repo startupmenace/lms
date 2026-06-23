@@ -115,7 +115,7 @@ if ($resp === false) {
 
 $result = json_decode($resp, true);
 
-if ($result['ResponseCode'] ?? '' !== '0') {
+if (($result['ResponseCode'] ?? '') !== '0') {
     http_response_code(502);
     echo json_encode(['error' => $result['errorMessage'] ?? 'STK push failed', 'details' => $result]);
     exit;

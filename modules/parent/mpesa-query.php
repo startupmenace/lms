@@ -88,7 +88,19 @@ if ($resp === false) {
 }
 
 $queryResult = json_decode($resp, true);
-$resultCode = $queryResult['ResultCode'] ?? null;
+
+// Check if the query itself was accepted
+$queryResponseCode = $queryResult['ResponseCode'] ?? null;
+if ($queryResponseCode !== '0' && $queryResponseCode !== 0) {
+    echo json_encode([
+        'status' => 'pending',
+        'resultCode' => -1,
+        'resultDesc' => $queryResult['ResponseDescription'] ?? 'Query pending'
+    ]);
+    exit;
+}
+
+$resultCode = (int)($queryResult['ResultCode'] ?? -1);
 $resultDesc = $queryResult['ResultDesc'] ?? '';
 
 if ($resultCode === 0) {
@@ -131,7 +143,7 @@ if ($resultCode === 0) {
 }
 
 $terminalCodes = [1032, 1037, 1031, 1025, 2001];
-$isTerminal = in_array($resultCode, $terminalCodes);
+$isTerminal = in_array($resultCode, $terminalCodes, true);
 $isCancelled = $resultCode === 1037;
 
 echo json_encode([
