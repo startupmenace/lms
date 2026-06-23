@@ -90,7 +90,6 @@ include __DIR__ . '/../../includes/student-header.php';
                     <p class="text-sm font-medium text-gray-900"><?= sanitize($t['title']) ?></p>
                     <p class="text-xs text-gray-500"><?= sanitize($t['subject_name'] ?? 'All Subjects') ?> | <?= $t['total_marks'] ?> marks | <?= $t['duration_minutes'] ?> min</p>
                 </div>
-                <span class="text-xs px-2 py-1 rounded-full <?= $t['difficulty'] == 'easy' ? 'bg-green-100 text-green-700' : ($t['difficulty'] == 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700') ?>"><?= ucfirst($t['difficulty']) ?></span>
             </div>
             <?php endforeach; ?>
         </div>

@@ -35,7 +35,6 @@ include __DIR__ . '/../../includes/student-header.php';
         <div class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition">
             <div class="flex items-start justify-between mb-2">
                 <h3 class="font-semibold text-gray-900"><?= sanitize($t['title']) ?></h3>
-                <span class="text-xs px-2 py-1 rounded-full <?= $t['difficulty'] == 'easy' ? 'bg-green-100 text-green-700' : ($t['difficulty'] == 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700') ?>"><?= ucfirst($t['difficulty']) ?></span>
             </div>
             <div class="text-xs text-gray-500 space-y-1">
                 <div><i class="fas fa-book w-4 mr-1"></i> <?= sanitize($t['subject_name'] ?? 'All Subjects') ?></div>

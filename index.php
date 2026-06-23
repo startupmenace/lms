@@ -287,7 +287,7 @@ require_once __DIR__ . '/includes/landing-header.php';
             <div>
                 <div class="w-14 h-14 bg-rose-100 rounded-2xl flex items-center justify-center mb-6"><i class="fas fa-flask text-2xl text-rose-600"></i></div>
                 <h3 class="text-2xl lg:text-3xl font-bold text-gray-900">Test Builder &amp;<br><span class="gradient-text">Evaluation Engine</span></h3>
-                <p class="text-gray-600 mt-4 leading-relaxed">Create rich assessments with mixed question types, set difficulty levels, and evaluate submissions with detailed feedback tools.</p>
+                <p class="text-gray-600 mt-4 leading-relaxed">Create rich assessments with mixed question types and custom marks per question, evaluate submissions with detailed feedback tools.</p>
                 <ul class="mt-6 space-y-3">
                     <li class="flex items-start gap-3"><div class="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5"><i class="fas fa-check text-xs text-green-600"></i></div><p class="text-sm text-gray-600"><strong>MCQ + Subjective</strong> — Mix question types in one test</p></li>
                     <li class="flex items-start gap-3"><div class="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5"><i class="fas fa-check text-xs text-green-600"></i></div><p class="text-sm text-gray-600"><strong>Difficulty slider</strong> — Easy &rarr; Medium &rarr; Hard per question</p></li>

@@ -80,8 +80,7 @@ include __DIR__ . '/../../includes/student-header.php';
                     <div class="flex items-center gap-3 mt-2 text-sm text-gray-500">
                         <span><i class="fas fa-book mr-1"></i> <?= sanitize($test['subject_name'] ?? 'All Subjects') ?></span>
                         <span><i class="fas fa-clock mr-1"></i> <?= $test['duration_minutes'] ?> min</span>
-                        <span><i class="fas fa-star mr-1"></i> <?= $test['total_marks'] ?> marks</span>
-                        <span class="px-2 py-0.5 rounded-full text-xs <?= $test['difficulty'] == 'easy' ? 'bg-green-100 text-green-700' : ($test['difficulty'] == 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700') ?>"><?= ucfirst($test['difficulty']) ?></span>
+                        <span><i class="fas fa-star mr-1"></i> <?= array_sum(array_column($questions, 'marks')) ?> marks</span>
                     </div>
                 </div>
                 <div class="text-right">

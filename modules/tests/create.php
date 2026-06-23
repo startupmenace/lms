@@ -11,8 +11,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = sanitize($_POST['title'] ?? '');
     $class_id = (int)($_POST['class_id'] ?? 0);
     $subject_id = !empty($_POST['subject_id']) ? (int)$_POST['subject_id'] : 'NULL';
-    $total_marks = (int)($_POST['total_marks'] ?? 100);
-    $difficulty = sanitize($_POST['difficulty'] ?? 'medium');
     $mcq_count = (int)($_POST['mcq_count'] ?? 0);
     $subjective_count = (int)($_POST['subjective_count'] ?? 0);
     $duration_minutes = (int)($_POST['duration_minutes'] ?? 60);
@@ -23,8 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $shuffle = isset($_POST['shuffle_questions']) ? 1 : 0;
         $test_id = db_insert(
-            "INSERT INTO tests (title, class_id, subject_id, total_marks, difficulty, mcq_count, subjective_count, duration_minutes, instructions, shuffle_questions, created_by) VALUES (?, ?, $subject_id, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [$title, $class_id, $total_marks, $difficulty, $mcq_count, $subjective_count, $duration_minutes, $instructions, $shuffle, get_user_id()]
+            "INSERT INTO tests (title, class_id, subject_id, mcq_count, subjective_count, duration_minutes, instructions, shuffle_questions, created_by) VALUES (?, ?, $subject_id, ?, ?, ?, ?, ?, ?)",
+            [$title, $class_id, $mcq_count, $subjective_count, $duration_minutes, $instructions, $shuffle, get_user_id()]
         );
         if ($test_id) {
             set_flash('success', 'Test created! Now add questions.');
@@ -71,22 +69,10 @@ include __DIR__ . '/../../includes/header.php';
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Total Marks</label>
-                    <input type="number" name="total_marks" value="100" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
-                </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Duration (minutes)</label>
                     <input type="number" name="duration_minutes" value="60" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
-                </div>
-                <div style="display: none;" >
-                    <label class="block text-sm font-medium text-gray-700 mb-1" >Difficulty</label>
-                    <select name="difficulty" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
-                        <option value="easy">Easy</option>
-                        <option value="medium" selected>Medium</option>
-                        <option value="hard">Hard</option>
-                    </select>
                 </div>
             </div>
 

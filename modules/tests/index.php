@@ -34,9 +34,6 @@ include __DIR__ . '/../../includes/header.php';
         <div class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition">
             <div class="flex items-start justify-between mb-2">
                 <h3 class="font-semibold text-gray-900"><?= sanitize($t['title']) ?></h3>
-                <span class="text-xs px-2 py-1 rounded-full <?= $t['difficulty'] == 'easy' ? 'bg-green-100 text-green-700' : ($t['difficulty'] == 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700') ?>">
-                    <?= ucfirst($t['difficulty']) ?>
-                </span>
                 <?php if (!empty($t['shuffle_questions'])): ?>
                 <span class="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-700"><i class="fas fa-random mr-1"></i></span>
                 <?php endif; ?>

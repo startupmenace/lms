@@ -13,5 +13,6 @@ if (!$test || !$qid) {
 }
 
 db_query("DELETE FROM questions WHERE id = ? AND test_id = ?", [$qid, $test_id]);
+db_query("UPDATE tests SET total_marks = (SELECT COALESCE(SUM(marks),0) FROM questions WHERE test_id = ?) WHERE id = ?", [$test_id, $test_id]);
 set_flash('success', 'Question removed.');
 redirect('add-questions.php?id=' . $test_id);

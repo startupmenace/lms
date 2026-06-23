@@ -24,9 +24,8 @@ include __DIR__ . '/../../includes/header.php';
             <div>
                 <h2 class="text-xl font-semibold text-gray-900"><?= sanitize($test['title']) ?></h2>
                 <div class="flex items-center gap-3 mt-2 text-sm text-gray-500">
-                    <span>Total Marks: <?= $test['total_marks'] ?></span>
+                    <span>Total Marks: <?= array_sum(array_column($questions, 'marks')) ?></span>
                     <span>Duration: <?= $test['duration_minutes'] ?> min</span>
-                    <span class="px-2 py-0.5 rounded-full text-xs <?= $test['difficulty'] == 'easy' ? 'bg-green-100 text-green-700' : ($test['difficulty'] == 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700') ?>"><?= ucfirst($test['difficulty']) ?></span>
                     <?php if (!empty($test['shuffle_questions'])): ?>
                     <span class="px-2 py-0.5 rounded-full text-xs bg-purple-100 text-purple-700"><i class="fas fa-random mr-1"></i> Shuffled</span>
                     <?php endif; ?>

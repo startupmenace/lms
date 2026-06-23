@@ -17,7 +17,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $type = sanitize($_POST['type'] ?? 'mcq');
     $question_text = sanitize($_POST['question_text'] ?? '');
     $marks = (int)($_POST['marks'] ?? 1);
-    $difficulty = sanitize($_POST['difficulty'] ?? 'medium');
     $options = [];
     $correct_answer = '';
 
@@ -34,9 +33,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         set_flash('error', 'Question text is required.');
     } else {
         db_insert(
-            "INSERT INTO questions (test_id, type, question_text, options, correct_answer, marks, difficulty) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            [$test_id, $type, $question_text, json_encode($options), $correct_answer, $marks, $difficulty]
+            "INSERT INTO questions (test_id, type, question_text, options, correct_answer, marks) VALUES (?, ?, ?, ?, ?, ?)",
+            [$test_id, $type, $question_text, json_encode($options), $correct_answer, $marks]
         );
+        db_query("UPDATE tests SET total_marks = (SELECT COALESCE(SUM(marks),0) FROM questions WHERE test_id = ?) WHERE id = ?", [$test_id, $test_id]);
         set_flash('success', 'Question added!');
         redirect('add-questions.php?id=' . $test_id);
     }
@@ -93,19 +93,9 @@ include __DIR__ . '/../../includes/header.php';
                     <label class="block text-xs font-medium text-gray-600 mb-1">Model Answer (for reference)</label>
                     <textarea name="model_answer" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"></textarea>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Marks</label>
-                        <input type="number" name="marks" value="1" min="1" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Difficulty</label>
-                        <select name="difficulty" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
-                            <option value="easy">Easy</option>
-                            <option value="medium" selected>Medium</option>
-                            <option value="hard">Hard</option>
-                        </select>
-                    </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Marks</label>
+                    <input type="number" name="marks" value="1" min="1" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
                 </div>
                 <button type="submit" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-700 transition w-full">
                     <i class="fas fa-plus mr-2"></i>Add Question
