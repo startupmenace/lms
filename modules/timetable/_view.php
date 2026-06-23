@@ -137,7 +137,7 @@ if (!has_role('admin')) {
                                         <textarea name="reason" required rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-teal-500 outline-none" placeholder="Why are you disputing this entry?"></textarea>
                                         <div class="flex items-center gap-2 mt-2">
                                             <button type="submit" class="bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-amber-700 transition">Submit Dispute</button>
-                                            <button type="button" onclick="this.closest('.hidden').classList.add('hidden')" class="px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 transition">Cancel</button>
+                                            <button type="button" onclick="document.getElementById('dispute-<?= $entry['id'] ?>').classList.add('hidden')" class="px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 transition">Cancel</button>
                                         </div>
                                     </form>
                                 </div>
