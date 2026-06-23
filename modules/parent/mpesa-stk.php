@@ -125,20 +125,13 @@ if ($result['ResponseCode'] ?? '' !== '0') {
 $merchantRequestId = $result['MerchantRequestID'];
 $checkoutRequestId = $result['CheckoutRequestID'];
 
-// Update transaction with pending M-Pesa payment
-$new_paid = $txn['paid_amount'] + $amount;
-$new_due = $txn['total_amount'] - $new_paid;
-$new_status = $new_due <= 0 ? 'paid' : 'partial';
-
+// Store STK push reference — actual payment confirmation comes via callback
 db_query(
     "UPDATE transactions SET
      payment_method = 'mpesa_stk',
-     transaction_id = ?,
-     paid_amount = ?,
-     due_amount = ?,
-     payment_status = ?
+     transaction_id = ?
      WHERE invoice_no = ? AND student_id = ?",
-    ['STK-' . $merchantRequestId, $new_paid, $new_due, $new_status, $invoice_no, $child_id]
+    ['STK-' . $merchantRequestId, $invoice_no, $child_id]
 );
 
 echo json_encode([

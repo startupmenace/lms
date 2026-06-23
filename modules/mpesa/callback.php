@@ -4,6 +4,9 @@
  * Safaricom sends the payment result here after user enters PIN.
  */
 
+require_once __DIR__ . '/../../config/config.php';
+require_once __DIR__ . '/../../includes/functions.php';
+
 // Log raw input for debugging
 $raw = file_get_contents('php://input');
 file_put_contents(__DIR__ . '/mpesa-callback.log', date('Y-m-d H:i:s') . ' ' . $raw . "\n", FILE_APPEND);
