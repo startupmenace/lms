@@ -218,7 +218,10 @@ include __DIR__ . '/../../includes/header.php';
                 <label class="block text-sm font-medium text-gray-700 mb-1">Disabilities / Medical Conditions</label>
                 <textarea name="disabilities" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none" placeholder="e.g. Asthma, ADHD, visual impairment, etc."></textarea>
             </div>
-
+         <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Add condition</label>
+                <textarea  rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none" placeholder="e.g. Asthma, ADHD, visual impairment, etc."></textarea>
+            </div>
             <div class="flex gap-3 pt-4">
                 <button type="submit" class="bg-teal-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-teal-700 transition"><i class="fas fa-save mr-2"></i>Save Student</button>
                 <a href="index.php" class="bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-200 transition">Cancel</a>
