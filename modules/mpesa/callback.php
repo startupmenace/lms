@@ -55,6 +55,13 @@ if (!$txn) {
     exit;
 }
 
+// Already confirmed via polling — skip to prevent double-counting
+if ($txn['verified_at']) {
+    http_response_code(200);
+    echo json_encode(['ResultCode' => 0, 'ResultDesc' => 'Already verified']);
+    exit;
+}
+
 // Update with verified M-Pesa payment
 $new_paid = $txn['paid_amount'] + $amount;
 $new_due = $txn['total_amount'] - $new_paid;
@@ -68,7 +75,7 @@ db_query(
      payment_status = ?,
      verified_by = 0,
      verified_at = NOW()
-     WHERE invoice_no = ?",
+     WHERE invoice_no = ? AND verified_at IS NULL",
     [$transId, $new_paid, $new_due, $new_status, $invoice_no]
 );
 

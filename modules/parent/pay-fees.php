@@ -257,7 +257,7 @@ include __DIR__ . '/../../includes/parent-header.php';
         if (!phone) { alert('Please enter your M-Pesa phone number'); return; }
 
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending STK Push...';
         status.className = 'hidden';
 
         fetch('mpesa-stk.php', {
@@ -268,17 +268,18 @@ include __DIR__ . '/../../includes/parent-header.php';
         .then(r => r.json())
         .then(d => {
             if (d.success) {
-                status.className = 'bg-green-50 border border-green-200 text-green-700 rounded-lg p-3 text-sm';
-                status.innerHTML = '<i class="fas fa-check-circle mr-1"></i> ' + d.message;
-                btn.innerHTML = '<i class="fas fa-check"></i> STK Push Sent';
-                setTimeout(() => { closeMpesaModal(); window.location.href = 'fees.php?child_id=<?= $child_id ?>'; }, 3000);
+                status.className = 'bg-blue-50 border border-blue-200 text-blue-700 rounded-lg p-3 text-sm';
+                status.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> STK push sent! Waiting for you to complete payment on your phone...';
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Waiting for confirmation...';
+                status.classList.remove('hidden');
+                pollMpesaStatus(d.CheckoutRequestID, d.invoice_no, d.child_id, d.amount);
             } else {
                 status.className = 'bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm';
                 status.innerHTML = '<i class="fas fa-exclamation-circle mr-1"></i> ' + (d.error || 'Payment failed');
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-mobile-alt"></i> Try Again';
+                status.classList.remove('hidden');
             }
-            status.classList.remove('hidden');
         })
         .catch(e => {
             status.className = 'bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm';
@@ -287,6 +288,58 @@ include __DIR__ . '/../../includes/parent-header.php';
             btn.innerHTML = '<i class="fas fa-mobile-alt"></i> Try Again';
             status.classList.remove('hidden');
         });
+    }
+
+    function pollMpesaStatus(checkoutId, invoiceNo, childId, amount) {
+        const maxAttempts = 20;
+        let attempts = 0;
+        const status = document.getElementById('mpesa-status');
+        const btn = document.getElementById('mpesa-pay-btn');
+
+        function poll() {
+            attempts++;
+            if (attempts > maxAttempts) {
+                status.className = 'bg-amber-50 border border-amber-200 text-amber-700 rounded-lg p-3 text-sm';
+                status.innerHTML = '<i class="fas fa-clock mr-1"></i> Payment not received yet. Check your phone or try again.';
+                btn.innerHTML = '<i class="fas fa-mobile-alt"></i> Try Again';
+                btn.disabled = false;
+                status.classList.remove('hidden');
+                return;
+            }
+
+            fetch('mpesa-query.php?checkout_id=' + encodeURIComponent(checkoutId) +
+                  '&invoice_no=' + encodeURIComponent(invoiceNo) +
+                  '&child_id=' + encodeURIComponent(childId) +
+                  '&amount=' + encodeURIComponent(amount))
+            .then(r => r.json())
+            .then(d => {
+                if (d.status === 'completed') {
+                    status.className = 'bg-green-50 border border-green-200 text-green-700 rounded-lg p-3 text-sm';
+                    status.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Payment of KSh ' + (d.amount || amount) + ' received!';
+                    btn.innerHTML = '<i class="fas fa-check"></i> Payment Complete';
+                    setTimeout(() => { closeMpesaModal(); window.location.href = 'fees.php?child_id=' + childId; }, 2000);
+                } else if (d.status === 'cancelled') {
+                    status.className = 'bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm';
+                    status.innerHTML = '<i class="fas fa-times-circle mr-1"></i> Payment cancelled on your phone.';
+                    btn.innerHTML = '<i class="fas fa-mobile-alt"></i> Try Again';
+                    btn.disabled = false;
+                    status.classList.remove('hidden');
+                } else if (d.status === 'failed') {
+                    status.className = 'bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm';
+                    status.innerHTML = '<i class="fas fa-exclamation-circle mr-1"></i> Payment failed: ' + (d.resultDesc || 'Unknown error');
+                    btn.innerHTML = '<i class="fas fa-mobile-alt"></i> Try Again';
+                    btn.disabled = false;
+                    status.classList.remove('hidden');
+                } else {
+                    setTimeout(poll, 3000);
+                }
+            })
+            .catch(e => {
+                setTimeout(poll, 3000);
+            });
+        }
+
+        poll();
     }
     </script>
     <?php else: ?>

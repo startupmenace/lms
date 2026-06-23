@@ -139,6 +139,8 @@ echo json_encode([
     'message' => 'STK push sent. Check your phone to complete payment.',
     'MerchantRequestID' => $merchantRequestId,
     'CheckoutRequestID' => $checkoutRequestId,
+    'invoice_no' => $invoice_no,
+    'child_id' => $child_id,
     'amount' => $amount,
     'phone' => $phone
 ]);
