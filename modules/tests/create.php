@@ -80,8 +80,8 @@ include __DIR__ . '/../../includes/header.php';
                     <label class="block text-sm font-medium text-gray-700 mb-1">Duration (minutes)</label>
                     <input type="number" name="duration_minutes" value="60" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1" style="display: none;">Difficulty</label>
+                <div style="display: none;" >
+                    <label class="block text-sm font-medium text-gray-700 mb-1" >Difficulty</label>
                     <select name="difficulty" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
                         <option value="easy">Easy</option>
                         <option value="medium" selected>Medium</option>
