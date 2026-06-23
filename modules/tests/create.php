@@ -4,8 +4,14 @@ require_once __DIR__ . '/../../includes/functions.php';
 require_role('admin', 'teacher');
 
 $page_title = 'Create New Test';
-$classes = db_get_all("SELECT * FROM classes WHERE is_active = 1 ORDER BY name");
-$subjects = db_get_all("SELECT * FROM subjects WHERE is_active = 1 ORDER BY name");
+
+if (has_role('admin')) {
+    $classes = db_get_all("SELECT * FROM classes WHERE is_active = 1 ORDER BY name");
+    $subjects = db_get_all("SELECT * FROM subjects WHERE is_active = 1 ORDER BY name");
+} else {
+    $classes = db_get_all("SELECT c.* FROM classes c JOIN class_teachers ct ON c.id = ct.class_id WHERE ct.teacher_id = ? AND c.is_active = 1 GROUP BY c.id ORDER BY c.name", [get_user_id()]);
+    $subjects = db_get_all("SELECT DISTINCT s.* FROM subjects s JOIN class_teachers ct ON (ct.subject_id IS NULL OR ct.subject_id = s.id) JOIN class_subjects cs ON cs.class_id = ct.class_id AND cs.subject_id = s.id WHERE ct.teacher_id = ? AND s.is_active = 1 ORDER BY s.name", [get_user_id()]);
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = sanitize($_POST['title'] ?? '');
@@ -19,14 +25,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($title) || !$class_id) {
         set_flash('error', 'Please fill in required fields.');
     } else {
-        $shuffle = isset($_POST['shuffle_questions']) ? 1 : 0;
-        $test_id = db_insert(
-            "INSERT INTO tests (title, class_id, subject_id, mcq_count, subjective_count, duration_minutes, instructions, shuffle_questions, created_by) VALUES (?, ?, $subject_id, ?, ?, ?, ?, ?, ?)",
-            [$title, $class_id, $mcq_count, $subjective_count, $duration_minutes, $instructions, $shuffle, get_user_id()]
-        );
-        if ($test_id) {
-            set_flash('success', 'Test created! Now add questions.');
-            redirect('add-questions.php?id=' . $test_id);
+        $can_create = true;
+        if (!has_role('admin')) {
+            $allowed = db_get_row("SELECT id FROM class_teachers WHERE class_id = ? AND teacher_id = ? AND (subject_id IS NULL OR subject_id = ?)", [$class_id, get_user_id(), $subject_id === 'NULL' ? 0 : $subject_id]);
+            if (!$allowed) {
+                set_flash('error', 'You can only create tests for your own classes and subjects.');
+                $can_create = false;
+            }
+        }
+        if ($can_create) {
+            $shuffle = isset($_POST['shuffle_questions']) ? 1 : 0;
+            $test_id = db_insert(
+                "INSERT INTO tests (title, class_id, subject_id, mcq_count, subjective_count, duration_minutes, instructions, shuffle_questions, created_by) VALUES (?, ?, $subject_id, ?, ?, ?, ?, ?, ?)",
+                [$title, $class_id, $mcq_count, $subjective_count, $duration_minutes, $instructions, $shuffle, get_user_id()]
+            );
+            if ($test_id) {
+                set_flash('success', 'Test created! Now add questions.');
+                redirect('add-questions.php?id=' . $test_id);
+            }
         }
     }
 }

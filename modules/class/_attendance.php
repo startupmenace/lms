@@ -12,6 +12,13 @@ foreach ($existing as $a) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_attendance'])) {
+    if (!has_role('admin')) {
+        $is_ct = db_get_row("SELECT id FROM class_teachers WHERE class_id = ? AND teacher_id = ? AND role = 'class_teacher'", [$class_id, get_user_id()]);
+        if (!$is_ct) {
+            set_flash('error', 'Only class teachers can mark attendance.');
+            redirect("?id=$class_id&tab=attendance&att_date=$date");
+        }
+    }
     db_query("DELETE FROM attendance WHERE class_id=? AND date=?", [$class_id, $date]);
     $statuses = $_POST['status'] ?? [];
     $reasons = $_POST['absent_reason'] ?? [];

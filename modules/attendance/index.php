@@ -9,7 +9,7 @@ $tab = $_GET['tab'] ?? 'mark';
 if (has_role('admin')) {
     $classes = db_get_all("SELECT * FROM classes WHERE is_active = 1 ORDER BY name");
 } else {
-    $classes = db_get_all("SELECT c.* FROM classes c JOIN class_teachers ct ON c.id = ct.class_id WHERE ct.teacher_id = ? AND c.is_active = 1 GROUP BY c.id ORDER BY c.name", [get_user_id()]);
+    $classes = db_get_all("SELECT c.* FROM classes c JOIN class_teachers ct ON c.id = ct.class_id WHERE ct.teacher_id = ? AND ct.role = 'class_teacher' AND c.is_active = 1 GROUP BY c.id ORDER BY c.name", [get_user_id()]);
 }
 $class_id = (int)($_GET['class_id'] ?? 0);
 $date = $_GET['date'] ?? date('Y-m-d');
@@ -24,6 +24,13 @@ if ($class_id) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_attendance'])) {
     require_module_access('attendance');
+    if (!has_role('admin')) {
+        $is_ct = db_get_row("SELECT id FROM class_teachers WHERE class_id = ? AND teacher_id = ? AND role = 'class_teacher'", [$class_id, get_user_id()]);
+        if (!$is_ct) {
+            set_flash('error', 'Only class teachers can mark attendance.');
+            redirect("index.php?tab=mark");
+        }
+    }
     foreach ($_POST['status'] as $student_id => $status) {
         $existing = db_get_row("SELECT id FROM attendance WHERE student_id = ? AND date = ?", [(int)$student_id, $date]);
         $reason = $_POST['absent_reason'][$student_id] ?? null;
