@@ -52,7 +52,14 @@ $tokenHttp = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
 
 if ($tokenResp === false || $tokenHttp !== 200) {
-    echo json_encode(['status' => 'error', 'error' => 'Failed to obtain access token']);
+    $err = curl_error($ch) ?: null;
+    echo json_encode([
+        'status' => 'error',
+        'error' => 'Failed to obtain access token',
+        'http_code' => $tokenHttp,
+        'token_response' => $tokenResp,
+        'curl_error' => $err
+    ]);
     exit;
 }
 
@@ -77,13 +84,23 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, [
     'Content-Type: application/json',
     'Authorization: Bearer ' . $access_token
 ]);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($ch, CURLOPT_TIMEOUT, 15);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 $resp = curl_exec($ch);
 $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$curlErr = curl_error($ch) ?: null;
 curl_close($ch);
 
-if ($resp === false) {
-    echo json_encode(['status' => 'error', 'error' => 'Query request failed']);
+if ($resp === false || $http !== 200) {
+    echo json_encode([
+        'status' => 'error',
+        'error' => 'Query request failed',
+        'http_code' => $http,
+        'response' => $resp,
+        'curl_error' => $curlErr,
+        'payload' => $queryPayload
+    ]);
     exit;
 }
 
