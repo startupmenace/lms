@@ -3,7 +3,7 @@ $class_teacher = db_get_row("SELECT u.full_name, u.email, u.phone FROM class_tea
 $date = $_GET['att_date'] ?? date('Y-m-d');
 $students = db_get_all("SELECT s.id, u.full_name FROM students s JOIN users u ON s.user_id=u.id WHERE s.class_id=? AND s.is_active=1 ORDER BY u.full_name", [$class_id]);
 
-$existing = db_get_all("SELECT student_id, status, absent_reason FROM attendance WHERE class_id=? AND date=?", [$class_id, $date]);
+$existing = db_get_all("SELECT student_id, status, remark as absent_reason FROM attendance WHERE class_id=? AND date=?", [$class_id, $date]);
 $att_map = [];
 $reason_map = [];
 foreach ($existing as $a) {
@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_attendance'])) {
     foreach ($statuses as $sid => $status) {
         if (in_array($status, ['present','absent','late','excused'])) {
             $reason = $reasons[$sid] ?? null;
-            db_insert("INSERT INTO attendance (class_id, student_id, date, status, absent_reason) VALUES (?,?,?,?,?)", [$class_id, (int)$sid, $date, $status, $reason ?: null]);
+            db_insert("INSERT INTO attendance (class_id, student_id, date, status, remark) VALUES (?,?,?,?,?)", [$class_id, (int)$sid, $date, $status, $reason ?: null]);
         }
     }
     set_flash('success', 'Attendance saved.');

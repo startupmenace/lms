@@ -21,7 +21,7 @@ $stats = $selected ? db_get_row("SELECT
     SUM(CASE WHEN status='leave' THEN 1 ELSE 0 END) as `leave`
     FROM attendance WHERE student_id = ?", [$selected['id']]) : null;
 
-$attendance = $selected ? db_get_all("SELECT a.*, c.name as class_name FROM attendance a LEFT JOIN classes c ON a.class_id = c.id WHERE a.student_id = ? ORDER BY a.date DESC LIMIT 60", [$selected['id']]) : [];
+$attendance = $selected ? db_get_all("SELECT a.*, c.name as class_name, a.remark as absent_reason FROM attendance a LEFT JOIN classes c ON a.class_id = c.id WHERE a.student_id = ? ORDER BY a.date DESC LIMIT 60", [$selected['id']]) : [];
 
 include __DIR__ . '/../../includes/parent-header.php';
 ?>

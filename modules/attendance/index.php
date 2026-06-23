@@ -16,7 +16,7 @@ $date = $_GET['date'] ?? date('Y-m-d');
 $students = [];
 
 if ($class_id) {
-    $students = db_get_all("SELECT s.*, a.status as attendance_status, a.absent_reason
+    $students = db_get_all("SELECT s.*, a.status as attendance_status, a.remark as absent_reason
         FROM students s
         LEFT JOIN attendance a ON a.student_id = s.id AND a.date = ?
         WHERE s.class_id = ? ORDER BY s.parent_name", [$date, $class_id]);
@@ -28,9 +28,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_attendance'])) {
         $existing = db_get_row("SELECT id FROM attendance WHERE student_id = ? AND date = ?", [(int)$student_id, $date]);
         $reason = $_POST['absent_reason'][$student_id] ?? null;
         if ($existing) {
-            db_query("UPDATE attendance SET status = ?, absent_reason = ?, marked_by = ? WHERE id = ?", [$status, $reason ?: null, get_user_id(), $existing['id']]);
+            db_query("UPDATE attendance SET status = ?, remark = ?, marked_by = ? WHERE id = ?", [$status, $reason ?: null, get_user_id(), $existing['id']]);
         } else {
-            db_insert("INSERT INTO attendance (student_id, class_id, date, status, absent_reason, marked_by) VALUES (?, ?, ?, ?, ?, ?)",
+            db_insert("INSERT INTO attendance (student_id, class_id, date, status, remark, marked_by) VALUES (?, ?, ?, ?, ?, ?)",
                 [(int)$student_id, $class_id, $date, $status, $reason ?: null, get_user_id()]);
         }
     }
