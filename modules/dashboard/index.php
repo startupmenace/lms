@@ -48,11 +48,11 @@ switch ($period) {
 
 if ($is_admin) {
     $fee_summary = db_get_row("SELECT
-        COALESCE(SUM(total_amount),0) as total_billed,
-        COALESCE(SUM(discount),0) as total_discount,
-        COALESCE(SUM(paid_amount),0) as total_paid,
-        COALESCE(SUM(total_amount - discount - paid_amount),0) as total_due
-        FROM transactions WHERE 1=1 $fee_on_filter") ?? ['total_billed'=>0,'total_discount'=>0,'total_paid'=>0,'total_due'=>0];
+        COALESCE(SUM(t.total_amount),0) as total_billed,
+        COALESCE(SUM(t.discount),0) as total_discount,
+        COALESCE(SUM(t.paid_amount),0) as total_paid,
+        COALESCE(SUM(t.total_amount - t.discount - t.paid_amount),0) as total_due
+        FROM transactions t WHERE 1=1 $fee_on_filter") ?? ['total_billed'=>0,'total_discount'=>0,'total_paid'=>0,'total_due'=>0];
 
     $fee_summary['total_applicable'] = $fee_summary['total_billed'] - $fee_summary['total_discount'];
     $fee_summary['collection_pct'] = $fee_summary['total_applicable'] > 0
@@ -66,14 +66,13 @@ if ($is_admin) {
         FROM classes c
         LEFT JOIN students s ON s.class_id = c.id AND s.is_active = 1
         LEFT JOIN transactions t ON t.student_id = s.id $fee_on_filter
-        LEFT JOIN transactions t ON t.student_id = s.id
         GROUP BY c.id, c.name ORDER BY c.name");
 
     $payment_status_counts = db_get_row("SELECT
         SUM(CASE WHEN payment_status = 'paid' THEN 1 ELSE 0 END) as paid_count,
         SUM(CASE WHEN payment_status = 'partial' THEN 1 ELSE 0 END) as partial_count,
         SUM(CASE WHEN payment_status = 'pending' THEN 1 ELSE 0 END) as pending_count
-        FROM transactions WHERE 1=1 $fee_on_filter") ?? ['paid_count'=>0,'partial_count'=>0,'pending_count'=>0];
+        FROM transactions t WHERE 1=1 $fee_on_filter") ?? ['paid_count'=>0,'partial_count'=>0,'pending_count'=>0];
 
     $birthday_month = $_GET['birthday_month'] ?? date('m');
     $birthday_students = db_get_all("SELECT s.*, c.name as class_name
