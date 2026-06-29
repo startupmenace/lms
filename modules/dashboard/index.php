@@ -20,17 +20,43 @@ $upcoming_live = db_get_row("SELECT COUNT(*) as count FROM live_classes WHERE te
 
 $recent_students = db_get_all("SELECT s.*, c.name as class_name FROM students s LEFT JOIN classes c ON s.class_id = c.id ORDER BY s.created_at DESC LIMIT 5");
 
+$period = $_GET['period'] ?? 'month';
+$att_date_filter = '';
+$fee_on_filter = '';
+switch ($period) {
+    case 'today':
+        $att_date_filter = 'AND a.date = CURDATE()';
+        $fee_on_filter = 'AND DATE(t.created_at) = CURDATE()';
+        break;
+    case 'week':
+        $att_date_filter = 'AND a.date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)';
+        $fee_on_filter = 'AND t.created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)';
+        break;
+    case 'month':
+        $att_date_filter = 'AND a.date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)';
+        $fee_on_filter = 'AND t.created_at >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)';
+        break;
+    case 'year':
+        $att_date_filter = 'AND a.date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)';
+        $fee_on_filter = 'AND t.created_at >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)';
+        break;
+    case 'all':
+        $att_date_filter = '';
+        $fee_on_filter = '';
+        break;
+}
+
 if ($is_admin) {
     $fee_summary = db_get_row("SELECT
         COALESCE(SUM(total_amount),0) as total_billed,
         COALESCE(SUM(discount),0) as total_discount,
         COALESCE(SUM(paid_amount),0) as total_paid,
         COALESCE(SUM(total_amount - discount - paid_amount),0) as total_due
-        FROM transactions") ?? ['total_billed'=>0,'total_discount'=>0,'total_paid'=>0,'total_due'=>0];
+        FROM transactions WHERE 1=1 $fee_on_filter") ?? ['total_billed'=>0,'total_discount'=>0,'total_paid'=>0,'total_due'=>0];
 
     $fee_summary['total_applicable'] = $fee_summary['total_billed'] - $fee_summary['total_discount'];
     $fee_summary['collection_pct'] = $fee_summary['total_applicable'] > 0
-        ? round($fee_summary['total_paid'] / $fee_summary['total_applicable'] * 100) : 0;
+        ? min(100, round($fee_summary['total_paid'] / $fee_summary['total_applicable'] * 100)) : 0;
 
     $fee_by_class = db_get_all("SELECT c.id, c.name,
         COALESCE(SUM(t.total_amount),0) as billed,
@@ -39,6 +65,7 @@ if ($is_admin) {
         COUNT(DISTINCT t.student_id) as paying_students
         FROM classes c
         LEFT JOIN students s ON s.class_id = c.id AND s.is_active = 1
+        LEFT JOIN transactions t ON t.student_id = s.id $fee_on_filter
         LEFT JOIN transactions t ON t.student_id = s.id
         GROUP BY c.id, c.name ORDER BY c.name");
 
@@ -46,7 +73,7 @@ if ($is_admin) {
         SUM(CASE WHEN payment_status = 'paid' THEN 1 ELSE 0 END) as paid_count,
         SUM(CASE WHEN payment_status = 'partial' THEN 1 ELSE 0 END) as partial_count,
         SUM(CASE WHEN payment_status = 'pending' THEN 1 ELSE 0 END) as pending_count
-        FROM transactions") ?? ['paid_count'=>0,'partial_count'=>0,'pending_count'=>0];
+        FROM transactions WHERE 1=1 $fee_on_filter") ?? ['paid_count'=>0,'partial_count'=>0,'pending_count'=>0];
 
     $birthday_month = $_GET['birthday_month'] ?? date('m');
     $birthday_students = db_get_all("SELECT s.*, c.name as class_name
@@ -86,9 +113,9 @@ $chart_absent = [];
 foreach ($my_classes as $c) {
     $chart_labels[] = $c['name'];
     $stats = db_get_row("SELECT
-        COALESCE(SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END), 0) as present_count,
-        COALESCE(SUM(CASE WHEN status = 'absent' THEN 1 ELSE 0 END), 0) as absent_count
-        FROM attendance WHERE class_id = ?", [$c['id']]);
+        COALESCE(SUM(CASE WHEN a.status = 'present' THEN 1 ELSE 0 END), 0) as present_count,
+        COALESCE(SUM(CASE WHEN a.status = 'absent' THEN 1 ELSE 0 END), 0) as absent_count
+        FROM attendance a WHERE a.class_id = ? $att_date_filter", [$c['id']]);
     $chart_present[] = (int)$stats['present_count'];
     $chart_absent[] = (int)$stats['absent_count'];
 }
@@ -217,6 +244,13 @@ include __DIR__ . '/../../includes/header.php';
     </div>
 </div>
 
+<div class="flex items-center gap-1.5 mb-4 sm:mb-6 flex-wrap">
+    <?php $opts = ['today' => 'Today', 'week' => 'This Week', 'month' => 'This Month', 'year' => 'This Year', 'all' => 'All Time']; ?>
+    <?php foreach ($opts as $val => $label): ?>
+    <a href="?period=<?= $val ?>" class="px-3 py-1.5 rounded-lg text-xs font-medium transition <?= $period === $val ? 'bg-teal-600 text-white shadow' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' ?>"><?= $label ?></a>
+    <?php endforeach; ?>
+</div>
+
 <?php if ($is_admin): ?>
 <div class="mb-6 sm:mb-8">
     <div class="flex items-center justify-between mb-4">
@@ -272,6 +306,7 @@ include __DIR__ . '/../../includes/header.php';
             <span class="flex items-center gap-2"><i class="fas fa-cake-candles text-pink-500"></i> Student Birthdays</span>
         </h2>
         <form method="GET" class="flex items-center gap-2">
+            <input type="hidden" name="period" value="<?= $period ?>">
             <select name="birthday_month" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-teal-500 outline-none bg-white">
                 <?php for ($m = 1; $m <= 12; $m++): ?>
                 <option value="<?= sprintf('%02d', $m) ?>" <?= $birthday_month == sprintf('%02d', $m) ? 'selected' : '' ?>><?= date('F', mktime(0, 0, 0, $m, 1)) ?></option>
